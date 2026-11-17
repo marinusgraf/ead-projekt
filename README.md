@@ -24,6 +24,7 @@ Die Daten sind wegen ihrer Größe **nicht im Repository**. Das Notebook lädt s
 | Notebook | Inhalt |
 |---|---|
 | `notebook_tcga_daten.ipynb` | Daten verstehen: Herkunft, Gene, Proben, Tumortypen, Werteverteilung, Probleme und offene Entscheidungen für die Aufbereitung |
+| `notebook_pca_primaertumoren.ipynb` | Erster einfacher PCA-Durchlauf auf den Primärtumoren: Bilden die Tumortypen eigene Gruppen, und wo weichen die Gruppen von den Tumortypen ab? Mit offenen Fragen am Ende. Braucht die Ausgaben von `notebook_tcga_daten.ipynb`. |
 
 ## Einrichtung
 
