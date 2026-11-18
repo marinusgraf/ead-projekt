@@ -6,3 +6,14 @@ data/
 *.tar.gz
 *.pdf
 
+
+# LaTeX-Hilfsdateien
+*.aux
+*.log
+*.fls
+*.fdb_latexmk
+*.nav
+*.snm
+*.toc
+*.out
+*.vrb
