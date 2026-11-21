@@ -140,8 +140,9 @@ E = np.load(DATA_DIR / "umap_2d.npy")
 nb_pca = np.load(DATA_DIR / "nachbarn_pca50.npy")
 study = meta["study"].to_numpy()
 zeile = pd.Series(np.arange(len(meta_all)), index=meta_all["barcode"]).loc[meta["barcode"]].to_numpy()   # Zeilen in X_all
-GESCHLECHTSGENE = ["DDX3Y", "KDM5D", "RPS4Y1", "EIF1AY", "ZFY", "UTY", "USP9Y", "CYorf15A", "XIST", "TTTY15",
-                   "CYorf15B", "PRKY", "NLGN4Y", "TMSB4Y", "TSIX", "NCRNA00185"]
+import json
+PARAMETER = json.load(open(DATA_DIR / "aufbereitet_parameter.json"))
+GESCHLECHTSGENE = PARAMETER["parameter"]["entferne_gene"]          # im Aufbereitungs-Notebook aus den Daten bestimmt
 
 
 def pca(Xc, k=50):
@@ -196,51 +197,32 @@ ax.yaxis.set_major_formatter(lambda v, _: de(v))
 ax.legend(ncol=4, loc="upper right", fontsize=7, handlelength=1, handleheight=0.8, columnspacing=1.2)
 speichern(fig, "probentypen.pdf")
 
-# ================================================================ 2. Sequenziergerät: Prüfung wie in notebook_aufbereitung.ipynb, Abschnitt 8
+# ================================================================ 2. Sequenziergerät: welche Tumortypen haben Proben vom älteren Gerät?
 print("2 Sequenziergerät")
-sel = meta_all["sample_type"].isin(["01", "03"]) & meta_all["do_not_use"].ne(True)
-idx_ga = np.sort(meta_all[sel].sort_values("barcode").drop_duplicates("patient").index.to_numpy())
-Xg = X_all[idx_ga]
-ok = ~np.isnan(Xg).any(axis=0)
-L = np.log2(np.clip(Xg[:, ok], 0, None) + 1)
-del Xg
-st_g = meta_all["study"].to_numpy()[idx_ga]
-anteil = pd.DataFrame(L > 0).groupby(st_g).mean().max(axis=0).to_numpy()
-var = L.var(axis=0)
-behalten = (anteil >= 0.5) & (var > 0) & ~np.isin(symbol[ok], GESCHLECHTSGENE)
-L, var = L[:, behalten], var[behalten]
-L = L[:, np.sort(np.argsort(var)[::-1][:5000])]
-L -= L.mean(axis=0)
-Z_g, _, _ = pca(L, k=50)
-nb_g = nachbarn(Z_g)
-ga = (meta_all["platform"].to_numpy()[idx_ga] == "GA")
-fig, axes = plt.subplots(1, 3, figsize=(5.8, 2.0))
 NAMEN_GA = {"UCEC": "Gebärmutterkörper (UCEC)", "COAD": "Dickdarm (COAD)", "READ": "Mastdarm (READ)"}
-for ax, t in zip(axes, NAMEN_GA):
-    m = st_g == t
-    Zs, _, evs = pca(L[m] - L[m].mean(axis=0), k=5)
-    for maske, farbe, name, s in [(~ga[m], GRAU_SERIE, "Illumina HiSeq", 5), (ga[m], ORANGE, "Genome Analyzer (älter)", 5)]:
-        ax.scatter(Zs[maske, 0], Zs[maske, 1], s=s, color=farbe, alpha=0.7, linewidths=0, label=name)
-    gleich = st_g[nb_g] == t                              # nur Nachbarn aus demselben Tumortyp betrachten
-    ga_nb = ga[nb_g] & gleich
-    gleich_ga = ga_nb[m & ga].sum() / gleich[m & ga].sum()
-    gleich_hi = ga_nb[m & ~ga].sum() / gleich[m & ~ga].sum()
-    ax.set_title(NAMEN_GA[t], fontsize=8, loc="left", pad=16)
-    ax.text(0, 1.02, f"älteres Gerät: {prozent(gleich_ga)} | HiSeq: {prozent(gleich_hi)}",
-            transform=ax.transAxes, fontsize=5.8, color=MUTED, va="bottom")
-    ax.set_xlabel("Hauptkomponente 1", fontsize=6.5)
-    ax.set_xticks([])
-    ax.set_yticks([])
-    ax.grid(False)
-    print(f"  {t}: {m.sum()} Proben, älteres Gerät {ga[m].mean():.0%}, Nachbarn GA|GA {gleich_ga:.0%}, GA|HiSeq {gleich_hi:.0%}")
-axes[0].set_ylabel("Hauptkomponente 2", fontsize=6.5)
-axes[1].legend(loc="upper center", bbox_to_anchor=(0.5, -0.22), ncol=2, fontsize=7, markerscale=1.8)
+plattform = meta["platform"].to_numpy()
+fig, ax = plt.subplots(figsize=(5.0, 1.45))
+y = np.arange(len(NAMEN_GA))[::-1]
+for yi, t in zip(y, NAMEN_GA):
+    m = study == t
+    n_hi, n_ga = int((m & (plattform == "HiSeq")).sum()), int((m & (plattform == "GA")).sum())
+    ax.barh(yi, n_hi, color=GRAU_SERIE, height=0.62, label="Illumina HiSeq" if yi == y[0] else None)
+    ax.barh(yi, n_ga, left=n_hi, color=ORANGE, height=0.62, label="Genome Analyzer (älter)" if yi == y[0] else None)
+    ax.text(n_hi + n_ga + 8, yi, f"{de(n_ga)} von {de(n_hi + n_ga)} vom älteren Gerät", va="center", fontsize=6.6, color=TEXT)
+    print(f"  {t}: {n_ga} von {n_hi + n_ga} vom älteren Gerät")
+ax.set_yticks(y, list(NAMEN_GA.values()))
+ax.tick_params(axis="y", length=0)
+ax.set_xlim(0, 800)
+ax.set_xticks([])
+ax.grid(False)
+ax.spines["bottom"].set_visible(False)
+ax.legend(loc="lower right", fontsize=6.6, handlelength=1)
 speichern(fig, "geraet.pdf")
-del L, Z_g
+print(f"  Proben vom älteren Gerät insgesamt: {(plattform == 'GA').sum()}")
 
 # ================================================================ 3. Fehlende Werte
 print("3 Fehlende Werte")
-X_sel = X_all[zeile]                                     # 9.104 Proben des Standardlaufs, alle Gene, Rohwerte
+X_sel = X_all[zeile]                                     # Proben des Standardlaufs, alle Gene, Rohwerte
 nan = np.isnan(X_sel)
 nan_gen = nan.any(axis=0)
 zeilen = []
@@ -253,8 +235,8 @@ for t in pd.unique(study):
 fw = pd.DataFrame(zeilen, columns=["typ", "alle", "teil", "n"]).set_index("typ")
 fw = fw.loc[(fw["alle"] + fw["teil"]).sort_values().index]
 NAMEN_FW = {"LAML": "Leukämie (LAML)", "STAD": "Magen (STAD)", "ESCA": "Speiseröhre (ESCA)", "OV": "Eierstock (OV)",
-            "PRAD": "Prostata (PRAD)"}
-fig, ax = plt.subplots(figsize=(5.0, 1.75))
+            "PRAD": "Prostata (PRAD)", "UCEC": "Gebärmutterkörper (UCEC)", "COAD": "Dickdarm (COAD)", "READ": "Mastdarm (READ)"}
+fig, ax = plt.subplots(figsize=(5.0, 2.3))
 y = np.arange(len(fw))
 ax.barh(y, fw["alle"], color=BLAU, height=0.62, label="Wert fehlt bei allen Proben des Typs", edgecolor="white", linewidth=0.5)
 ax.barh(y, fw["teil"], left=fw["alle"], color=GELB, height=0.62, label="Wert fehlt bei einem Teil der Proben",
@@ -346,13 +328,8 @@ print(f"  {len(v)} Gene, Anteil der Top 5000 an der Varianz {v[:5000].sum() / v.
 
 # ================================================================ 6. Geschlechtsgene
 print("6 Geschlechtsgene")
-# Hauptkomponentenanalyse wie im Standardlauf, aber MIT Geschlechtsgenen (notebook_aufbereitung.ipynb, Abschnitt 4)
-k_mit = np.sort(np.flatnonzero(filt)[np.argsort(var[filt])[::-1][:5000]])
-X_mit = L[:, k_mit] - L[:, k_mit].mean(axis=0)
-Z_mit, V_mit, ev_mit = pca(X_mit, k=20)
-j_xist = int(np.argmax(np.abs(V_mit[:, list(sym_ok[k_mit]).index("XIST")])))
+# r² pro Gen innerhalb der Tumortypen (nur Tumortypen mit beiden Geschlechtern), wie notebook_aufbereitung.ipynb, Abschnitt 4
 gender = meta["gender"].to_numpy()
-# r² pro Gen innerhalb der Tumortypen (nur Tumortypen mit beiden Geschlechtern)
 beide = meta.groupby("study")["gender"].nunique()
 m = (meta["study"].isin(beide[beide == 2].index) & meta["gender"].notna()).to_numpy()
 Lf = L[:, filt]
@@ -361,34 +338,22 @@ w = (gender[m] == "weiblich").astype(float)
 w -= w.mean()
 r2 = ((w @ Rr) / np.sqrt((w**2).sum() * (Rr**2).sum(axis=0))) ** 2
 r2 = pd.Series(r2, index=sym_ok[filt]).sort_values(ascending=False)
-del Rr, Lf
+del Rr, Lf, L
 
-fig, (a1, a2) = plt.subplots(1, 2, figsize=(5.8, 2.1), gridspec_kw={"width_ratios": [1, 1.5]})
-score = innerhalb(Z_mit[:, j_xist], study)
-for g, farbe in [("männlich", BLAU), ("weiblich", ORANGE)]:
-    a1.hist(score[gender == g], bins=60, color=farbe, alpha=0.65, label=g)
-a1.set_title(f"vorher: Hauptkomponente {j_xist + 1}", loc="left")
-a1.set_xlabel("Score (Tumortyp-Mittel abgezogen)")
-a1.set_yticks([])
-a1.grid(False)
-a1.spines["left"].set_visible(False)
-a1.legend(fontsize=6.8, loc="upper left", handlelength=1)
-top = r2.head(24)
+fig, ax = plt.subplots(figsize=(5.0, 1.95))
+top = r2.head(20)
 farben = np.where(top.to_numpy() > 0.4, BLAU, GRAU_SERIE)
-a2.bar(range(len(top)), top.to_numpy(), color=farben, width=0.75)
-a2.axhline(0.4, color=MUTED, lw=0.8, ls=(0, (3, 2)))
-a2.text(len(top) - 0.5, 0.42, "Schwelle 0,4", ha="right", va="bottom", fontsize=6.5, color=MUTED)
-a2.set_xticks(range(len(top)), top.index, rotation=90, fontsize=5.8)
-a2.tick_params(axis="x", length=0)
-a2.set_title("durch das Geschlecht erklärter Anteil pro Gen", loc="left")
-a2.set_ylabel("$r^2$")
-a2.yaxis.set_major_formatter(lambda v_, _: de(v_, 1))
-fig.tight_layout(w_pad=1.5)
+ax.bar(range(len(top)), top.to_numpy(), color=farben, width=0.75)
+ax.axhline(0.4, color=MUTED, lw=0.8, ls=(0, (3, 2)))
+ax.text(len(top) - 0.5, 0.42, "Schwelle 0,4", ha="right", va="bottom", fontsize=6.5, color=MUTED)
+ax.set_xticks(range(len(top)), top.index, rotation=90, fontsize=6.2)
+ax.tick_params(axis="x", length=0)
+ax.set_ylabel("durch das Geschlecht\nerklärter Anteil $r^2$")
+ax.yaxis.set_major_formatter(lambda v_, _: de(v_, 1))
 speichern(fig, "geschlecht.pdf")
-eta_vorher = eta2(score, gender)
 eta_nachher = max(eta2(innerhalb(Z[:, j], study), gender) for j in range(20))
-print(f"  Geschlechtsachse HK {j_xist + 1} ({ev_mit[j_xist]:.1%}); eta² Geschlecht vorher {eta_vorher:.1%}, nachher max {eta_nachher:.2%}")
-del X_mit, L
+print(f"  über Schwelle: {list(top.index[top > 0.4])}; eta² Geschlecht nachher max {eta_nachher:.2%}")
+print(f"  Gene des Y-Chromosoms im Datensatz nach B1: {[g for g in ['RPS4Y1', 'DDX3Y', 'KDM5D', 'PRKY', 'NLGN4Y'] if g in set(sym_ok)]}")
 
 # ================================================================ 7. Störgrößen: Tumortyp gegen Platte (notebook_aufbereitung.ipynb, Abschnitt 7)
 print("7 Störgrößen")
@@ -436,8 +401,7 @@ print(f"  Brustkrebs: HK {j_pl + 1} ({evb[j_pl]:.1%}), Platte erklärt {eta2(Zb[
 
 # ================================================================ 8. Protokoll der Aufbereitung
 print("8 Protokoll")
-import json
-prot = pd.DataFrame(json.load(open(DATA_DIR / "aufbereitet_parameter.json"))["protokoll"])
+prot = pd.DataFrame(PARAMETER["protokoll"])
 SCHRITTE = {"alle Proben": "Rohdaten", "A1 nur Primärtumoren": "nur Primärtumoren", "A3 ohne Do_not_use": "ohne „nicht verwenden“",
             "A4 nur Illumina HiSeq": "nur Illumina HiSeq", "A2 eine Probe pro Patient": "eine Probe pro Patient",
             "B1 Gene mit fehlenden Werten entfernt": "ohne Gene mit fehlenden Werten", "D1 Expressionsfilter": "Expressionsfilter",
@@ -495,8 +459,8 @@ for (i, j), name in [((0, 1), "pca_12.pdf"), ((2, 3), "pca_34.pdf")]:
     speichern(fig, name)
 
 # Ladungen: Gene mit den größten Gewichten an beiden Enden
-PROGRAMME = {0: ("Nervengewebe", "Drüsenepithel"), 1: ("Leber, Niere", "Plattenepithel"),
-             2: ("Niere, Drüsen", "Schleimhaut"), 3: ("Immunzellen", "Drüsenepithel")}
+PROGRAMME = {0: ("Drüsenepithel", "Nervengewebe"), 1: ("Leber, Niere", "Plattenepithel"),      # (Ende −, Ende +)
+             2: ("Niere, Drüsen", "Schleimhaut"), 3: ("Drüsenepithel", "Immunzellen")}
 fig, axes = plt.subplots(1, 4, figsize=(5.9, 2.35))
 for j, ax in enumerate(axes):
     o = np.argsort(Vt[j])
@@ -545,7 +509,7 @@ speichern(fig, "eigener_anteil.pdf")
 ARTEN = {"gleiches Organ": (BLAU, [("READ", "COAD"), ("GBM", "LGG"), ("COAD", "READ"), ("UCS", "UCEC"), ("KICH", "KIRC"),
                                    ("LGG", "GBM"), ("KIRP", "KIRC"), ("LUSC", "LUAD")]),
          "gleiches Gewebe, anderes Organ": (ORANGE, [("ESCA", "STAD"), ("ESCA", "HNSC"), ("STAD", "ESCA"), ("ESCA", "LUSC"), ("CESC", "HNSC")]),
-         "gemeinsame Entwicklungsherkunft": (AQUA, [("CHOL", "LIHC"), ("UCS", "OV"), ("UCEC", "OV")])}
+         "gemeinsame Entwicklungsherkunft": (AQUA, [("CHOL", "LIHC"), ("UCS", "OV"), ("CESC", "UCEC")])}
 fig, ax = plt.subplots(figsize=(4.3, 2.75))
 y, beschr = 0, []
 for art, (farbe, liste) in ARTEN.items():

@@ -141,56 +141,60 @@
 \end{frame}
 
 % ==================================================================
-\begin{frame}{Forschungsfrage und Vorgehen}
-  \begin{kasten}
-    \kastentitel{Forschungsfrage}
-    Wie ähneln sich verschiedene Tumortypen in ihrer Genexpression?
-  \end{kasten}
-  \vspace{0.25cm}
-  \begin{itemize}
-    \item Ähneln sich Tumoren eher nach \textbf{Organ} oder nach \textbf{Gewebeart}?
-    \item Jede Probe ist ein Punkt in einem Raum mit rund 20.000 Dimensionen, eine pro Gen.
-  \end{itemize}
-  \vspace{0.35cm}
-  \centering
-  \begin{tikzpicture}[schritt/.style={draw=blaurand,fill=blauhell,rounded corners=2pt,minimum height=0.8cm,
-                                      text width=1.9cm,align=center,font=\footnotesize},
-                      fertig/.style={draw=petrol,fill=petrolhell,line width=0.9pt},
-                      >={Stealth[length=4pt]}, node distance=0.3cm]
-    \node[schritt,fertig] (d) {Datensatz};
-    \node[schritt,fertig,right=of d] (a) {Aufbereitung};
-    \node[schritt,fertig,right=of a,text width=3.95cm] (p) {\mbox{Hauptkomponentenanalyse}};
-    \node[schritt,fertig,right=of p] (u) {UMAP};
-    \node[schritt,right=of u] (c) {Clustering};
-    \foreach \x/\y in {d/a,a/p,p/u,u/c} \draw[->,grau] (\x) -- (\y);
-    \draw[decorate,decoration={brace,amplitude=4pt,mirror},petrol] (d.south west) ++(0,-0.12) -- ([yshift=-0.12cm]u.south east)
-      node[midway,below=5pt,font=\scriptsize,text=petrol] {heute};
-    \node[below=0.2cm of c,font=\scriptsize,text=grau] {als Nächstes};
-  \end{tikzpicture}
-  \quelle{UMAP: Uniform Manifold Approximation and Projection. Clustering: spektrale Clusteranalyse und ein zweites Verfahren.}
-\end{frame}
-
-% ==================================================================
 \abschnittsfolie{1.\enspace Der Datensatz}
 
-\begin{frame}{Herkunft: TCGA PanCanAtlas}
-  \begin{itemize}
-    \item \textbf{TCGA} (The Cancer Genome Atlas): US-amerikanisches Forschungsprogramm (2006--2018),
-          über 11.000 Tumoren aus 33 Krebsarten molekular vermessen.
-    \item \textbf{PanCanAtlas} (Pan-Cancer Atlas, 2018): alle Krebsarten einheitlich aufbereitet.
-    \item Frei zugänglich über die Genomic Data Commons des National Cancer Institute (USA).
-  \end{itemize}
-  \vspace{0.25cm}
-  \small
-  \begin{tabularx}{\textwidth}{@{}l Y r@{}}
-    \toprule
-    \textbf{Datei} & \textbf{Inhalt} & \textbf{Größe} \\
-    \midrule
-    Genexpression & 20.531 Gene in 11.069 Proben, batch-korrigiert & 1,9 Gigabyte \\
-    klinische Tabelle & pro \textbf{Patient}: Tumortyp, Geschlecht, Alter, Histologie & 3 Megabyte \\
-    Qualitätsangaben & pro \textbf{Probe}: Sequenziergerät, Markierung „nicht verwenden“ & 8 Megabyte \\
-    \bottomrule
-  \end{tabularx}
+\begin{frame}{Herkunft der Daten}
+  \centering
+  \begin{tikzpicture}[>={Stealth[length=5pt]},
+      stufe/.style={draw=blaurand,fill=blauhell,rounded corners=3pt,minimum width=3.9cm,minimum height=2.6cm,
+                    align=center,inner sep=4pt},
+      institut/.style={draw=petrol!60,fill=petrolhell,rounded corners=3pt,minimum width=3.9cm,minimum height=1.5cm,
+                    align=center,inner sep=4pt},
+      pfeil/.style={->,grau,line width=0.9pt}]
+    \node[institut] (nci) at (0,0.95) {{\bfseries\footnotesize National Cancer Institute}\\[1pt]
+      {\scriptsize\color{grau}Krebsforschung (USA)}};
+    \node[institut] (nhgri) at (0,-0.95) {{\bfseries\footnotesize National Human Genome}\\{\bfseries\footnotesize Research Institute}\\[1pt]
+      {\scriptsize\color{grau}Genomforschung (USA)}};
+    \node[stufe] (tcga) at (5.6,0) {{\color{blau}\bfseries TCGA}\\[1pt]
+      {\scriptsize The Cancer Genome Atlas}\\[3pt]
+      {\scriptsize\color{grau}2006--2018}\\[2pt]
+      {\footnotesize 11.000 Tumoren aus}\\{\footnotesize 33 Krebsarten vermessen}};
+    \node[stufe] (pan) at (10.1,0) {{\color{blau}\bfseries PanCanAtlas}\\[1pt]
+      {\scriptsize Pan-Cancer Atlas}\\[3pt]
+      {\scriptsize\color{grau}2018}\\[2pt]
+      {\footnotesize alle Krebsarten gemeinsam,}\\{\footnotesize einheitlich aufbereitet}};
+    \coordinate (zusammen) at (2.35,0);
+    \draw[grau,line width=0.9pt] (nci.east) -| (zusammen);
+    \draw[grau,line width=0.9pt] (nhgri.east) -| (zusammen);
+    \draw[pfeil] (zusammen) -- (tcga.west);
+    \node[font=\scriptsize\bfseries,text=grau,above] at (3.0,0) {starten};
+    \draw[pfeil] (tcga) -- (pan);
+  \end{tikzpicture}
+\end{frame}
+
+\begin{frame}{Genutzte Daten aus dem PanCanAtlas}
+  \centering
+  \begin{tikzpicture}[>={Stealth[length=5pt]},
+      quelle/.style={draw=blaurand,fill=blauhell,rounded corners=3pt,minimum width=4.4cm,minimum height=1.4cm,
+                    align=center,inner sep=4pt},
+      datei/.style={draw=petrol!60,fill=petrolhell,rounded corners=3pt,minimum width=4.2cm,minimum height=2.3cm,
+                    align=center,inner sep=4pt},
+      pfeil/.style={->,grau,line width=0.9pt}]
+    \node[quelle] (pan) at (4.6,0) {{\color{blau}\bfseries PanCanAtlas}\\[1pt]
+      {\scriptsize\color{grau}einheitlich aufbereitete Dateien aller 33 Krebsarten}};
+    \node[datei] (f1) at (0,-3) {{\bfseries\footnotesize Genexpression}\\[2pt]
+      {\scriptsize Sequenzierung der RNA}\\[4pt]
+      {\footnotesize 20.531 Gene $\times$}\\{\footnotesize 11.069 Proben}};
+    \node[datei] (f2) at (4.6,-3) {{\bfseries\footnotesize Klinische Tabelle}\\[2pt]
+      {\scriptsize eine Zeile pro Patient}\\[4pt]
+      {\footnotesize Tumortyp, Geschlecht,}\\{\footnotesize Alter, Histologie}};
+    \node[datei] (f3) at (9.2,-3) {{\bfseries\footnotesize Qualitätsangaben}\\[2pt]
+      {\scriptsize eine Zeile pro Probe}\\[4pt]
+      {\footnotesize Sequenziergerät,}\\{\footnotesize Markierung „nicht verwenden“}};
+    \draw[grau,line width=0.9pt] (pan.south) -- (4.6,-1.4);
+    \draw[grau,line width=0.9pt] (0,-1.4) -- (9.2,-1.4);
+    \foreach \f/\x in {f1/0,f2/4.6,f3/9.2} \draw[pfeil] (\x,-1.4) -- (\f.north);
+  \end{tikzpicture}
 \end{frame}
 
 % ------------------------------------------------------------------
@@ -231,127 +235,423 @@
 \end{frame}
 
 % ------------------------------------------------------------------
-\begin{frame}{Die Werte: vom Gewebe zur Zahl}
+\begin{frame}{Beispiel: zwei Zeilen der Matrix}
   \centering
-  \begin{tikzpicture}[schritt/.style={draw=blaurand,fill=blauhell,rounded corners=2pt,minimum height=0.75cm,
-                                      text width=2.35cm,align=center,font=\footnotesize\bfseries},
-                      erkl/.style={text width=2.3cm,align=center,font=\scriptsize,text=grau,anchor=north},
-                      >={Stealth[length=4pt]}, node distance=0.3cm]
-    \node[schritt] (s1) {Gewebe};
-    \node[schritt,right=of s1] (s2) {Sequenzierung};
-    \node[schritt,right=of s2] (s3) {Zuordnung zu Genen};
-    \node[schritt,right=of s3] (s4) {Normalisierung};
-    \node[schritt,right=of s4,draw=petrol,fill=petrolhell] (s5) {Batch-Korrektur};
-    \foreach \x/\y in {s1/s2,s2/s3,s3/s4,s4/s5} \draw[->,grau] (\x) -- (\y);
-    \node[erkl] at ([yshift=-0.15cm]s1.south) {RNA (Ribonukleinsäure) aus einem Stück Tumor};
-    \node[erkl] at ([yshift=-0.15cm]s2.south) {Millionen kurzer Stücke (Reads) lesen};
-    \node[erkl] at ([yshift=-0.15cm]s3.south) {geschätzte Zahl der Reads pro Gen};
-    \node[erkl] at ([yshift=-0.15cm]s4.south) {oberes Quartil jeder Probe auf 1.000};
-    \node[erkl] at ([yshift=-0.15cm]s5.south) {Geräte- und Zentrums\-unterschiede herausgerechnet};
+  \vspace*{0.3cm}
+  \begin{tikzpicture}[
+      zelle/.style={draw=blaurand,fill=blauhell,minimum width=1.5cm,minimum height=0.85cm,align=center,
+                    font=\normalsize\bfseries,text=blau},
+      hervor/.style={draw=petrol!70,fill=petrolhell,text=petrol},
+      kopf/.style={minimum width=1.5cm,font=\footnotesize\bfseries,anchor=south},
+      zeile/.style={anchor=east,font=\footnotesize},
+      erkl/.style={align=center,font=\scriptsize,text=grau,anchor=north}]
+    \def\w{1.5}
+    \foreach \i/\gen/\text in {
+        0/GAPDH/{überall\\aktiv},
+        1/XIST/{nur bei\\Frauen},
+        2/RPS4Y1/{nur bei\\Männern},
+        3/SFTPC/{Lungen-\\bläschen},
+        4/NKX2-1/{Lungen-\\gewebe},
+        5/ALB/{Albumin,\\Leber}} {
+      \node[kopf] at (\w*\i,0.425) {\gen};
+      \node[erkl] at (\w*\i,-1.4) {\text};
+    }
+    \node[kopf,minimum width=0.9cm,text=grau] at (8.7,0.425) {\dots};
+    \node[erkl] at (8.7,-1.4) {20.525\\weitere};
+    \node[zeile] at (-0.8,0) {TCGA-05-4402-\dots};
+    \foreach \i/\wert/\stil in {0/85.894/,1/3.458/hervor,2/{1,2}/hervor,3/1.610/,4/2.779/,5/{25,6}/}
+      \node[zelle,\stil] at (\w*\i,0) {\wert};
+    \node[zeile] at (-0.8,-0.85) {TCGA-05-4249-\dots};
+    \foreach \i/\wert/\stil in {0/22.878/,1/{1,9}/hervor,2/3.411/hervor,3/2.417/,4/4.180/,5/{1,6}/}
+      \node[zelle,\stil] at (\w*\i,-0.85) {\wert};
+    \foreach \y in {0,-0.85}
+      \node[zelle,minimum width=0.9cm,draw=blaurand!60,dashed,fill=white,text=grau,font=\footnotesize] at (8.7,\y) {\dots};
+    \draw[decorate,decoration={brace,amplitude=4pt},grau] (-0.75,1.0) -- (9.15,1.0)
+      node[midway,above=5pt,font=\footnotesize\bfseries,text=text] {Gene (Spalten)};
+    \draw[decorate,decoration={brace,amplitude=4pt,mirror},grau] (-3.3,0.425) -- (-3.3,-1.275)
+      node[midway,left=6pt,font=\footnotesize\bfseries,text=text,align=right] {Proben\\(Zeilen)};
   \end{tikzpicture}
-  \vspace{0.5cm}
-  \raggedright
+
+  \vspace{0.15cm}
+  {\scriptsize\color{grau}beide: Lungenkrebs (Adenokarzinom der Lunge, LUAD)}
+\end{frame}
+
+% ------------------------------------------------------------------
+\begin{frame}{Der Probenname (Barcode)}
+  \centering
+  \begin{tikzpicture}[
+      teil/.style={draw=blaurand,fill=blauhell,minimum width=1.38cm,minimum height=0.7cm,
+                   font=\normalsize\ttfamily\bfseries,text=blau},
+      bed/.style={align=center,font=\scriptsize,anchor=north,text width=2.2cm},
+      klammer/.style={decorate,decoration={brace,amplitude=4pt},grau},
+      gruppe/.style={midway,above=5pt,font=\footnotesize\bfseries,text=text}]
+    \def\d{1.5}
+    \foreach \i/\a in {0/TCGA,1/05,2/4402,3/01,4/A,5/01,6/R,7/1206,8/07}
+      \node[teil] (o\i) at (\d*\i,0) {\a};
+    \foreach \i/\text in {
+        0/{Projekt},
+        1/{Klinik},
+        2/{Patient},
+        3/{Probentyp},
+        4/{Röhrchen},
+        5/{Teilstück},
+        6/{Molekül},
+        7/{Platte},
+        8/{Zentrum}}
+      \node[bed] at ([yshift=-0.15cm]o\i.south) {\text};
+    \draw[klammer] ([yshift=0.12cm]o0.north west) -- ([yshift=0.12cm]o2.north east) node[gruppe] {Patient};
+    \draw[klammer] ([yshift=0.12cm]o3.north west) -- ([yshift=0.12cm]o4.north east) node[gruppe] {Probe};
+    \draw[klammer] ([yshift=0.12cm]o5.north west) -- ([yshift=0.12cm]o8.north east) node[gruppe] {Messung};
+  \end{tikzpicture}
+
+  \vspace{0.45cm}
   \begin{columns}[t]
-    \begin{column}{0.48\textwidth}
+    \begin{column}{0.31\textwidth}
       \begin{kasten}
-        \kastentitel{Jeder Wert ist ein Durchschnitt}
-        \small Tumorzellen, Immunzellen, Bindegewebe und Blutgefäße zusammen.
+        \kastentitel{Patient}
+        \small Verknüpft die Matrix mit der klinischen Tabelle.
       \end{kasten}
     \end{column}
-    \begin{column}{0.48\textwidth}
+    \begin{column}{0.31\textwidth}
       \begin{kasten}
-        \kastentitel{Batch-Effekt}
-        \small Gemeinsam verarbeitete Proben (Platte, Gerät, Zentrum) tragen gemeinsame technische Spuren.
+        \kastentitel{Probentyp}
+        \small Unterscheidet Primärtumor, Metastase und Normalgewebe.
+      \end{kasten}
+    \end{column}
+    \begin{column}{0.31\textwidth}
+      \begin{kasten}
+        \kastentitel{Platte}
+        \small Gemeinsam verarbeitet: Quelle von Batch-Effekten.
       \end{kasten}
     \end{column}
   \end{columns}
 \end{frame}
 
+% ------------------------------------------------------------------
+\begin{frame}{Vom Gewebe zur Zahl: die Messung}
+  \centering
+  \begin{tikzpicture}[>={Stealth[length=5pt]},
+      schritt/.style={font=\footnotesize\bfseries,text=blau,anchor=south},
+      erkl/.style={font=\scriptsize,text=grau,align=center,anchor=north},
+      pfeil/.style={->,grau,line width=0.9pt},
+      read/.style={line width=2.2pt,line cap=round}]
+    % 1 Gewebe
+    \begin{scope}[shift={(0,0)}]
+      \fill[petrolhell,draw=petrol!60,line width=0.8pt]
+        plot[smooth cycle,tension=0.8] coordinates {(-1.0,0.2) (-0.6,0.85) (0.3,0.95) (1.0,0.45) (0.9,-0.5) (0.2,-0.95) (-0.8,-0.7)};
+      \foreach \x/\y in {-0.55/0.35,-0.1/0.55,0.4/0.5,0.6/0.0,0.15/0.05,-0.35/-0.15,-0.6/-0.45,0.0/-0.5,0.45/-0.55,-0.75/0.0}
+        {\draw[petrol!50,fill=white] (\x,\y) circle (0.19); \fill[petrol!70] (\x,\y) circle (0.06);}
+      \node[schritt] at (0,1.25) {Gewebeprobe};
+      \node[erkl] at (0,-1.25) {ein Stück Tumor,\\tiefgefroren};
+    \end{scope}
+    \draw[pfeil] (1.2,0) -- (1.75,0);
+    % 2 RNA
+    \begin{scope}[shift={(2.9,0)}]
+      \foreach \y/\l in {0.7/1.6,0.35/1.1,0/1.8,-0.35/1.3,-0.7/1.5}
+        \draw[blau,line width=1pt,domain=-0.9:-0.9+\l,samples=40,smooth] plot (\x,{\y+0.08*sin(\x*900)});
+      \node[schritt] at (0,1.25) {RNA herauslösen};
+      \node[erkl] at (0,-1.25) {Abschriften der gerade\\aktiven Gene};
+    \end{scope}
+    \draw[pfeil] (4.05,0) -- (4.6,0);
+    % 3 Sequenzieren
+    \begin{scope}[shift={(5.75,0)}]
+      \node[font=\tiny\ttfamily,text=blau,align=left] at (0,0.05) {ACGTTAGCAT\\TTGACCGTAA\\GGCATTACGT\\CATGGTACCA\\ATTCGGATCG\\\dots};
+      \node[schritt] at (0,1.25) {Sequenzieren};
+      \node[erkl] at (0,-1.25) {Millionen kurzer\\Stücke (Reads) lesen};
+    \end{scope}
+    \draw[pfeil] (6.75,0) -- (7.3,0);
+    % 4 Zuordnen
+    \begin{scope}[shift={(8.85,0)}]
+      \draw[grau,line width=0.8pt] (-1.45,-0.55) -- (1.45,-0.55);
+      \foreach \x/\g in {-0.9/A,0.1/B,1.0/C}
+        {\fill[blaurand] (\x-0.38,-0.7) rectangle (\x+0.38,-0.4);
+         \node[font=\tiny\bfseries,text=white] at (\x,-0.55) {\g};}
+      \foreach \x/\y in {-1.1/-0.25,-0.75/-0.25,-1.0/-0.05,-0.7/-0.05,-0.95/0.15,-0.8/0.35,-1.05/0.55,-0.7/0.55}
+        \draw[read,orange] (\x-0.17,\y) -- (\x+0.17,\y);
+      \foreach \x/\y in {0.0/-0.25,0.2/-0.05}
+        \draw[read,orange] (\x-0.17,\y) -- (\x+0.17,\y);
+      \node[font=\tiny,text=grau,anchor=west] at (-1.5,-0.85) {Erbgut};
+      \node[schritt] at (0,1.25) {Gene zuordnen};
+      \node[erkl] at (0,-1.25) {jeden Read an seine\\Stelle im Erbgut legen};
+    \end{scope}
+    \draw[pfeil] (10.4,0) -- (10.95,0);
+    % 5 Zählen
+    \begin{scope}[shift={(11.95,0)}]
+      \node[draw=blaurand,fill=blauhell,rounded corners=2pt,inner sep=4pt,font=\footnotesize] at (0,0) {%
+        \begin{tabular}{@{}lr@{}}
+          Gen A & \textbf{8}\\
+          Gen B & \textbf{2}\\
+          Gen C & \textbf{0}
+        \end{tabular}};
+      \node[schritt] at (0,1.25) {Zählen};
+      \node[erkl] at (0,-1.25) {Reads pro Gen\\ergeben die Zahl};
+    \end{scope}
+  \end{tikzpicture}
+
+  \vspace{0.6cm}
+  \begin{kasten}
+    \centering Je aktiver ein Gen, desto mehr Abschriften und Reads, desto \textbf{größer die Zahl}.
+  \end{kasten}
+\end{frame}
+
+% ------------------------------------------------------------------
+\begin{frame}{Das Problem: unterschiedliche Sequenziertiefe}
+  \centering
+  \begin{tikzpicture}[>={Stealth[length=5pt]},
+      pfeil/.style={->,grau,line width=0.9pt},
+      titel/.style={font=\normalsize\bfseries,text=blau},
+      erkl/.style={font=\scriptsize,text=grau,align=center}]
+    \foreach \px/\name/\tiefe/\fa/\fb/\wa/\wb in {0/Probe 1/{20 Millionen\\Reads}/0.8/0.2/800/200,
+                                                    7.8/Probe 2/{40 Millionen\\Reads}/1.6/0.4/1.600/400} {
+      \begin{scope}[shift={(\px,0)}]
+        \node[titel] at (0,1.9) {\name};
+        % Gewebe
+        \begin{scope}[shift={(-2.9,0.3)},scale=0.6]
+          \fill[petrolhell,draw=petrol!60,line width=0.8pt]
+            plot[smooth cycle,tension=0.8] coordinates {(-1.0,0.2) (-0.6,0.85) (0.3,0.95) (1.0,0.45) (0.9,-0.5) (0.2,-0.95) (-0.8,-0.7)};
+          \foreach \x/\y in {-0.55/0.35,-0.1/0.55,0.4/0.5,0.6/0.0,0.15/0.05,-0.35/-0.15,-0.6/-0.45,0.0/-0.5,0.45/-0.55,-0.75/0.0}
+            {\draw[petrol!50,fill=white] (\x,\y) circle (0.19); \fill[petrol!70] (\x,\y) circle (0.06);}
+        \end{scope}
+        \node[erkl] at (-2.9,-0.45) {gleiches Gewebe};
+        \draw[pfeil] (-2.1,0.3) -- (-0.75,0.3);
+        \node[font=\scriptsize\bfseries,text=text,anchor=south,align=center] at (-1.42,0.35) {\tiefe};
+        % Balken
+        \draw[grau,line width=0.6pt] (-0.55,-0.5) -- (2.75,-0.5);
+        \foreach \i/\g/\h/\w in {0/A/\fa/\wa,1/B/\fb/\wb,2/C/0/0} {
+          \fill[blau] (0.1+1.05*\i-0.3,-0.5) rectangle (0.1+1.05*\i+0.3,-0.5+\h);
+          \node[font=\footnotesize\bfseries,text=blau,anchor=south] at (0.1+1.05*\i,-0.5+\h) {\w};
+          \node[font=\footnotesize,anchor=north] at (0.1+1.05*\i,-0.55) {Gen \g};
+        }
+      \end{scope}
+    }
+  \end{tikzpicture}
+
+  \vspace{0.5cm}
+  \begin{kasten}
+    \centering Gleiche Biologie, aber \textbf{doppelte Zahlen}: Probe 2 sähe doppelt so aktiv aus.
+  \end{kasten}
+\end{frame}
+
+% ------------------------------------------------------------------
+\begin{frame}{Normalisierung: an einem Beispiel}
+  \centering
+  {\small Die beiden Proben von eben: Probe 2 wurde \textbf{doppelt so tief} sequenziert.}
+
+  \vspace{0.1cm}
+  \begin{tikzpicture}[>={Stealth[length=5pt]},
+      tab/.style={draw=blaurand,fill=blauhell,rounded corners=2pt,inner sep=5pt,font=\footnotesize},
+      ergebnis/.style={draw=petrol!70,fill=petrolhell,rounded corners=2pt,inner sep=5pt,font=\footnotesize},
+      titel/.style={font=\footnotesize\bfseries,text=blau,anchor=south},
+      erkl/.style={font=\scriptsize,text=grau,align=center,anchor=north},
+      pfeil/.style={->,grau,line width=0.9pt}]
+    \node[tab] (roh) at (0,0) {%
+      \begin{tabular}{@{}lrr@{}}
+                & Probe 1 & Probe 2\\\midrule
+        Gen A   & 800     & 1.600\\
+        Gen B   & 200     & 400\\
+        Gen C   & 0       & 0\\
+        \midrule
+        \textbf{oberes Quartil} & \textbf{400} & \textbf{800}
+      \end{tabular}};
+    \node[titel] at (roh.north) {gezählte Reads};
+    \node[erkl] at ([yshift=-0.12cm]roh.south) {Probe 2 hat überall doppelte Werte,\\nur weil mehr gelesen wurde};
+
+    \node[draw=grau!60,rounded corners=2pt,fill=white,align=center,inner sep=6pt,font=\footnotesize] (op) at (5.0,0)
+      {jeden Wert\\$\div$ \textbf{oberes Quartil}\\$\times$ \textbf{1.000}};
+    \draw[pfeil] (roh.east) -- (op.west);
+
+    \node[ergebnis] (norm) at (9.6,0) {%
+      \begin{tabular}{@{}lrr@{}}
+                & Probe 1 & Probe 2\\\midrule
+        Gen A   & 2.000   & 2.000\\
+        Gen B   & 500     & 500\\
+        Gen C   & 0       & 0\\
+        \midrule
+        \textbf{oberes Quartil} & \textbf{1.000} & \textbf{1.000}
+      \end{tabular}};
+    \draw[pfeil] (op.east) -- (norm.west);
+    \node[titel,text=petrol] at (norm.north) {normalisierte Werte};
+    \node[erkl] at ([yshift=-0.12cm]norm.south) {beide Proben jetzt\\direkt vergleichbar};
+  \end{tikzpicture}
+
+  \vspace{-0.25cm}
+  \begin{columns}[t]
+    \begin{column}{0.48\textwidth}
+      \begin{kasten}
+        \kastentitel{Oberes Quartil}
+        \small Der Wert, unter dem 75 Prozent der Gene liegen.
+      \end{kasten}
+    \end{column}
+    \begin{column}{0.48\textwidth}
+      \begin{kasten}
+        \kastentitel{Warum nicht die Summe?}
+        \small Wenige extrem aktive Gene würden sie bestimmen.
+      \end{kasten}
+    \end{column}
+  \end{columns}
+\end{frame}
+
+% ------------------------------------------------------------------
+\begin{frame}{Einen Wert lesen}
+  \centering
+  \begin{tikzpicture}[>={Stealth[length=5pt]},
+      zelle/.style={draw=blaurand,fill=blauhell,minimum width=1.5cm,minimum height=0.85cm,align=center,
+                    font=\normalsize\bfseries,text=blau},
+      hervor/.style={draw=petrol,fill=petrolhell,text=petrol,line width=1.2pt},
+      kopf/.style={minimum width=1.5cm,font=\footnotesize\bfseries,anchor=south},
+      zeile/.style={anchor=east,font=\footnotesize}]
+    \def\w{1.5}
+    \node[zeile] at (-0.8,0) {TCGA-05-4402-\dots};
+    \foreach \i/\gen/\wert/\stil in {0/GAPDH/85.894/,1/XIST/3.458/,2/RPS4Y1/{1,2}/,3/SFTPC/1.610/,4/NKX2-1/2.779/hervor,5/ALB/{25,6}/} {
+      \node[zelle,\stil] (z\i) at (\w*\i,0) {\wert};
+      \node[kopf] at (z\i.north) {\gen};
+    }
+    \node[zelle,minimum width=0.9cm,draw=blaurand!60,dashed,fill=white,text=grau,font=\footnotesize] at (8.7,0) {\dots};
+    % Rangskala
+    \def\L{9.6}
+    \begin{scope}[shift={(-0.75,-2.0)}]
+      \fill[blauhell] (0,-0.12) rectangle (\L,0.12);
+      \draw[blaurand] (0,-0.12) rectangle (\L,0.12);
+      \foreach \p in {0,25,50,100}
+        \node[font=\tiny,text=grau,anchor=north] at (\L*\p/100,-0.15) {\p\,\%};
+      \foreach \p/\gen in {6.2/RPS4Y1,22.4/ALB,84.9/SFTPC,100/GAPDH}
+        {\fill[blau] (\L*\p/100,0) circle (0.08);
+         \node[font=\scriptsize,text=blau,above=2pt] at (\L*\p/100,0.1) {\gen};}
+      \draw[orange,line width=1.2pt] (\L*0.75,-0.25) -- (\L*0.75,0.25);
+      \node[font=\scriptsize\bfseries,text=orange,anchor=south] at (\L*0.75,0.25) {1.000};
+      \node[font=\tiny,text=orange,anchor=north] at (\L*0.75,-0.15) {75\,\% = oberes Quartil};
+      \fill[petrol] (\L*92.2/100,0) circle (0.11);
+      \node[font=\scriptsize\bfseries,text=petrol,below=14pt] (nk) at (\L*92.2/100,0) {NKX2-1: 92\,\%};
+      \node[font=\scriptsize,text=grau,anchor=east,align=right] at (-0.2,0) {Anteil der Gene über 0\\[-2pt] mit kleinerem Wert};
+    \end{scope}
+    \draw[->,petrol,line width=0.9pt] (z4.south) .. controls +(0,-0.6) and +(0,0.7) .. (-0.75+9.6*0.922,-1.85);
+  \end{tikzpicture}
+
+  \vspace{0.25cm}
+  \begin{columns}[t]
+    \begin{column}{0.48\textwidth}
+      \begin{kasten}
+        \kastentitel{Relativ zur Probe}
+        \small 2.779 $\div$ 1.000 $\approx$ 2,8: NKX2-1 ist 2,8-mal so aktiv wie ein Gen am oberen Quartil, aktiver als 92 Prozent der Gene mit einem Wert über 0.
+      \end{kasten}
+    \end{column}
+    \begin{column}{0.48\textwidth}
+      \begin{kasten}
+        \kastentitel{Biologisch}
+        \small NKX2-1 steuert die Entwicklung der Lunge: ein hoher Wert passt zum Adenokarzinom der Lunge.
+      \end{kasten}
+    \end{column}
+  \end{columns}
+\end{frame}
+
+% ------------------------------------------------------------------
+
 % ==================================================================
 \abschnittsfolie{2.\enspace Die Aufbereitung}
+
+% ------------------------------------------------------------------ Korrekturen der Autoren
+\begin{frame}{Was die Autoren schon korrigiert haben}
+  \centering
+  \vspace*{0.25cm}
+  \begin{tikzpicture}[>={Stealth[length=5pt]},
+      schritt/.style={draw=blaurand,fill=blauhell,rounded corners=3pt,minimum width=4.0cm,inner xsep=0.1cm,inner ysep=4pt,
+                      minimum height=1.55cm,align=center},
+      nr/.style={circle,fill=blau,text=white,font=\scriptsize\bfseries,inner sep=1.5pt},
+      pfeil/.style={->,grau,line width=0.9pt}]
+    \node[schritt] (s1) at (-0.15,0) {{\footnotesize\bfseries Normalisierung}\\[2pt]
+      {\scriptsize alle Proben auf}\\{\scriptsize oberes Quartil = 1.000}};
+    \node[schritt] (s2) at (4.35,0) {{\footnotesize\bfseries Batch-Korrektur (EB++)}\\[2pt]
+      {\scriptsize Gerät und Zentrum}\\{\scriptsize pro Gen herausgerechnet}};
+    \node[schritt] (s3) at (8.85,0) {{\footnotesize\bfseries Qualitätsprüfung}\\[2pt]
+      {\scriptsize „nicht verwenden“ markiert:}\\{\scriptsize 184 Proben, nicht entfernt}};
+    \foreach \s/\n in {s1/1,s2/2,s3/3} \node[nr] at (\s.north west) {\n};
+    \draw[pfeil] (s1) -- (s2);
+    \draw[pfeil] (s2) -- (s3);
+
+    % Welche Proben hat EB++ verändert? (Breite proportional zur Probenzahl, 11.069 = 13 cm)
+    \begin{scope}[shift={(-2.15,-2.45)}]
+      \node[font=\footnotesize\bfseries,anchor=south west] at (0,0.42) {Welche Proben hat die Batch-Korrektur verändert?};
+      \fill[blauhell] (0,-0.3) rectangle (10.775,0.3);
+      \fill[orange!75] (10.775,-0.3) rectangle (11.477,0.3);
+      \fill[orange] (11.477,-0.3) rectangle (12.763,0.3);
+      \fill[orange!50] (12.763,-0.3) rectangle (12.802,0.3);
+      \fill[grau!45] (12.802,-0.3) rectangle (13.0,0.3);
+      \draw[blaurand] (0,-0.3) rectangle (13.0,0.3);
+      \node[font=\footnotesize,text=blau] at (5.39,0) {\textbf{9.174} Illumina HiSeq, Hauptzentrum: \textbf{Referenz, unverändert}};
+      \foreach \x/\farbe/\text in {0/orange!75/{\textbf{598} älteres Gerät\\{\color{grau}korrigiert}},
+                                    4.5/orange/{\textbf{1.095} andere Zentren\\{\color{grau}korrigiert}},
+                                    9.0/grau!45/{\textbf{169} Glioblastom (Broad Institute)\\{\color{grau}nicht korrigiert}}} {
+        \fill[\farbe] (\x,-0.72) rectangle (\x+0.25,-0.47);
+        \node[font=\scriptsize,anchor=north west,align=left,inner sep=0pt] at (\x+0.35,-0.45) {\text};
+      }
+    \end{scope}
+    % zwei Kästen: gleiche Breite und Höhe, Abstand 0,5 cm wie zwischen den Schritten
+    \node[anchor=north,inner sep=0pt] at (0.975,-4.3) {\begin{kasten}[width=6.25cm,equal height group=autoren]
+        \kastentitel{Nicht korrigiert}
+        \small Platten und Kliniken: Batch-Effekte können übrig sein.
+      \end{kasten}};
+    \node[anchor=north,inner sep=0pt] at (7.725,-4.3) {\begin{kasten}[width=6.25cm,equal height group=autoren]
+        \kastentitel{Nebenwirkungen}
+        \small Fehlende und leicht negative Werte in den korrigierten Proben.
+      \end{kasten}};
+  \end{tikzpicture}
+\end{frame}
 
 % ------------------------------------------------------------------ Probentypen
 \begin{frame}{Welche Proben gibt es?}
   \bild[0.9\textwidth]{probentypen.pdf}
-  \vspace{0.1cm}
-  \begin{kasten}
-    Fast alle Proben sind Primärtumoren. Normalgewebe meist vom selben Patienten, Metastasen fast nur beim Melanom der Haut (SKCM).
-  \end{kasten}
 \end{frame}
 
 \begin{frame}{Welche Proben behalten wir?}
-  \begin{entscheidung}
-    \gross{Nur Primärtumoren}\quad{\color{grau}11.069 $\rightarrow$ 9.879 Proben}
+  \bild[0.9\textwidth]{probentypen.pdf}
+  \vspace{0.1cm}
+  \begin{entscheidung}[fonttitle=\scriptsize\bfseries, toptitle=0.5pt, bottomtitle=0.5pt, top=2pt, bottom=2pt]
+    {\normalsize\bfseries\color{petrol}Nur Primärtumoren}\quad{\small\color{grau}11.069 $\rightarrow$ 9.879 Proben}
   \end{entscheidung}
-  \vspace{0.2cm}
-  \begin{itemize}
-    \item Normalgewebe und Metastasen würden den Vergleich der Tumortypen verwischen:
-          Metastasen enthalten Gewebe des Zielorgans (zum Beispiel Lymphknoten).
-    \item Dazu: Proben mit der Markierung „nicht verwenden“ entfernen (155 Proben), eine Probe pro Patient (3 Proben).
-  \end{itemize}
 \end{frame}
 
 % ------------------------------------------------------------------ Sequenziergerät
-\begin{frame}{Zwei Sequenziergeräte}
-  \bild[0.66\textwidth]{geraet.pdf}
-  \quelle{598 Proben vom älteren Gerät. Prozent: Anteil der Nachbarn (gleicher Tumortyp) vom älteren Gerät, für Proben vom älteren Gerät und von HiSeq.}
-  \vspace{0.1cm}
-  \begin{kasten}
-    Die Batch-Korrektur hat den Geräteunterschied \textbf{nicht ganz} ausgeglichen: Proben vom älteren Gerät liegen bevorzugt beieinander.
-  \end{kasten}
-\end{frame}
-
-\begin{frame}{Welches Gerät behalten wir?}
-  \begin{entscheidung}
-    \gross{Nur Illumina HiSeq}\quad{\color{grau}9.724 $\rightarrow$ 9.107 Proben}
-  \end{entscheidung}
-  \vspace{0.3cm}
-  \centering
-  \small
-  \begin{tabular}{@{}l r r@{}}
-    \toprule
-    \textbf{Tumortyp} & \textbf{beide Geräte} & \textbf{nur HiSeq} \\
-    \midrule
-    Gebärmutterkörper (UCEC) & 528 & 173 \\
-    Dickdarm (COAD) & 441 & 278 \\
-    Mastdarm (READ) & 156 & 90 \\
-    \bottomrule
-  \end{tabular}
-  \vspace{0.3cm}
-  \raggedright
-  \begin{itemize}
-    \item Preis: drei Tumortypen werden deutlich kleiner.
-    \item Dafür kein Geräteunterschied, der wie ein Untertyp aussehen könnte.
-  \end{itemize}
-\end{frame}
 
 % ------------------------------------------------------------------ Fehlende Werte
 \begin{frame}{Fehlende Werte}
-  \bild[0.85\textwidth]{fehlende_werte.pdf}
-  \vspace{0.15cm}
-  \begin{kasten}
-    3.820 Gene haben fehlende Werte, aber nur bei \textbf{5 Tumortypen}. Meist fehlt das Gen für \textbf{alle} Proben des Typs:
-    Dort konnte die Batch-Korrektur nichts schätzen.
-  \end{kasten}
+  \centering
+  \vspace*{0.3cm}
+  \small
+  \begin{tabular}{@{}l r r@{}}
+    \toprule
+    \textbf{Tumortyp} & \textbf{betroffene Proben} & \textbf{Gene mit fehlenden Werten} \\
+    \midrule
+    Leukämie (LAML)          & 100\,\% & 3.766 \\
+    Magen (STAD)             & 100\,\% & 3.766 \\
+    Dickdarm (COAD)          & 37\,\%  & 3.024 \\
+    Mastdarm (READ)          & 42\,\%  & 3.024 \\
+    Gebärmutterkörper (UCEC) & 67\,\%  & 3.024 \\
+    Speiseröhre (ESCA)       & 100\,\% & 1.455 \\
+    Eierstock (OV)           & 100\,\% & 1.455 \\
+    Prostata (PRAD)          & 7\,\%   & 1.443 \\
+    \midrule
+    \textbf{zusammen}        &         & \textbf{4.196} \\
+    \bottomrule
+  \end{tabular}
 \end{frame}
 
 \begin{frame}{Was tun mit den fehlenden Werten?}
   \begin{entscheidung}
-    \gross{Gene mit fehlenden Werten entfernen}\quad{\color{grau}20.531 $\rightarrow$ 16.711 Gene}
+    \gross{Gene mit fehlenden Werten entfernen}\quad{\color{grau}20.531 $\rightarrow$ 16.335 Gene}
   \end{entscheidung}
   \vspace{0.2cm}
   \begin{columns}[t]
     \begin{column}{0.5\textwidth}
       \begin{itemize}
-        \item Proben entfernen? Magen, Speiseröhre und Leukämie fielen ganz weg.
+        \item Proben entfernen? Magen, Speiseröhre, Eierstock und Leukämie fielen ganz weg.
         \item Auffüllen? Ganze Tumortypen ohne einen einzigen Wert: Jede Auffüllung wäre erfunden.
       \end{itemize}
     \end{column}
     \begin{column}{0.46\textwidth}
       \begin{kasten}
         \kastentitel{Geprüft}
-        \small Mit 0 aufgefüllt bleiben 1.463 wichtige Gene erhalten (zum Beispiel Keratine).
-        Nachbarn aus demselben Tumortyp: \textbf{84,5\,\%} statt \textbf{84,1\,\%}. Kaum ein Unterschied.
+        \small Mit 0 aufgefüllt bleiben 1.599 wichtige Gene erhalten (zum Beispiel Keratine).
+        Nachbarn aus demselben Tumortyp: \textbf{85,0\,\%} statt \textbf{84,3\,\%}. Kaum ein Unterschied.
       \end{kasten}
     \end{column}
   \end{columns}
@@ -393,41 +693,41 @@
   \bild[0.78\textwidth]{varianz_gene.pdf}
   \vspace{0.1cm}
   \begin{kasten}
-    Wenige Gene streuen stark, die meisten kaum. Die 5.000 Gene mit der größten Varianz tragen \textbf{71\,\%} der Gesamtvarianz.
+    Wenige Gene streuen stark, die meisten kaum. Die 5.000 Gene mit der größten Varianz tragen \textbf{72\,\%} der Gesamtvarianz.
   \end{kasten}
 \end{frame}
 
 \begin{frame}{Welche Gene behalten wir?}
   \begin{entscheidung}
-    \gross{Die 5.000 Gene mit der größten Varianz}\quad{\color{grau}16.693 $\rightarrow$ 5.000 Gene}
+    \gross{Die 5.000 Gene mit der größten Varianz}\quad{\color{grau}16.331 $\rightarrow$ 5.000 Gene}
   \end{entscheidung}
   \vspace{0.2cm}
   \begin{itemize}
     \item Varianz auf der \textbf{logarithmierten} Skala, sonst gewinnen immer die hoch exprimierten Gene.
-    \item Vorher: Gene entfernen, die in keinem Tumortyp bei mindestens der Hälfte der Proben exprimiert sind (nur noch 2 Gene).
+    \item Vorher: Gene entfernen, die in keinem Tumortyp bei mindestens der Hälfte der Proben exprimiert sind (trifft nach dem vorigen Schritt kein Gen mehr).
     \item Pro Gen \textbf{zentrieren}, nicht standardisieren: stark streuende Gewebegene sollen die Achsen prägen.
   \end{itemize}
 \end{frame}
 
 % ------------------------------------------------------------------ Geschlechtsgene
-\begin{frame}{Eine Achse für das Geschlecht}
-  \bild{geschlecht.pdf}
+\begin{frame}{Welche Gene hängen am Geschlecht?}
+  \bild[0.85\textwidth]{geschlecht.pdf}
   \vspace{0.1cm}
   \begin{kasten}
-    Hauptkomponente 9 trennt Männer und Frauen. Verantwortlich sind wenige Gene, fast alle vom \textbf{Y-Chromosom},
-    dazu \gen{XIST} und \gen{TSIX}. Danach eine klare Lücke.
+    Nur \textbf{4 Gene} hängen stark am Geschlecht: \gen{XIST} und \gen{TSIX} (nur bei Frauen aktiv) und zwei Gene des Y-Chromosoms.
+    Die übrigen Y-Gene sind schon mit den fehlenden Werten weggefallen. Danach eine klare Lücke.
   \end{kasten}
 \end{frame}
 
 \begin{frame}{Geschlechtsgene}
   \begin{entscheidung}
-    \gross{16 Geschlechtsgene entfernen}\quad{\color{grau}aus den Daten bestimmt: $r^2 > 0{,}4$}
+    \gross{4 Geschlechtsgene entfernen}\quad{\color{grau}aus den Daten bestimmt: $r^2 > 0{,}4$}
   \end{entscheidung}
   \vspace{0.3cm}
   \begin{itemize}
     \item Gefragt ist der Tumortyp, nicht das Geschlecht der Patienten.
     \item $r^2$ wird \textbf{innerhalb} der Tumortypen gemessen: Prostata-Gene zählen nicht als Geschlechtsgene.
-    \item Danach erklärt das Geschlecht auf keiner der ersten 20 Hauptkomponenten mehr als 0,2\,\%.
+    \item Danach erklärt das Geschlecht auf keiner der ersten 20 Hauptkomponenten mehr als 0,1\,\%.
   \end{itemize}
 \end{frame}
 
@@ -445,7 +745,7 @@
   \bild[0.88\textwidth]{platte_brustkrebs.pdf}
   \vspace{0.1cm}
   \begin{kasten}
-    Eigene Hauptkomponentenanalyse nur für Brustkrebs: Achse 3 wird zu \textbf{49\,\%} durch die Platte erklärt (Zufall: 3\,\%).
+    Eigene Hauptkomponentenanalyse nur für Brustkrebs: Achse 3 wird zu \textbf{51\,\%} durch die Platte erklärt (Zufall: 4\,\%).
     Die Platten verschieben sich schrittweise, vermutlich mit dem Zeitpunkt der Verarbeitung.
   \end{kasten}
 \end{frame}
@@ -467,7 +767,7 @@
   \bild{protokoll.pdf}
   \vspace{0.15cm}
   \begin{kasten}
-    \textbf{9.104 Primärtumoren $\times$ 5.000 Gene}, logarithmiert und zentriert. Geprüft und verworfen:
+    \textbf{9.720 Primärtumoren $\times$ 5.000 Gene}, logarithmiert und zentriert. Geprüft und verworfen:
     Ausgleich der Gruppengrößen und weitere Qualitätsfilter. Beides ändert die Nachbarschaften nicht.
   \end{kasten}
 \end{frame}
@@ -507,7 +807,7 @@
   \bild{pca_varianz.pdf}
   \vspace{0.1cm}
   \begin{kasten}
-    Statt 5.000 Genen genügen wenige Dutzend Achsen: 10 erklären 53\,\%, 50 rund 73\,\%.
+    Statt 5.000 Genen genügen wenige Dutzend Achsen: 10 erklären 53\,\%, 50 rund 72\,\%.
     Ab etwa 15 bis 20 flacht die Kurve ab, aber ohne klaren Knick.
   \end{kasten}
 \end{frame}
@@ -517,7 +817,7 @@
   \vspace{-0.05cm}
   \begin{kasten}
     \textbf{Achse 1:} Gehirn und Nebenniere gegen Epithel. \textbf{Achse 2:} Leber und Leukämie heraus.
-    Die Karzinome überlappen rechts oben in einer großen Wolke.
+    Die Karzinome überlappen links oben in einer großen Wolke.
   \end{kasten}
 \end{frame}
 
@@ -525,7 +825,7 @@
   \bild[0.72\textwidth]{pca_34.pdf}
   \vspace{-0.05cm}
   \begin{kasten}
-    \textbf{Achse 3:} Nieren links, Leukämie, Lymphom und Melanome rechts. \textbf{Achse 4:} Prostata oben, Immunzellen unten.
+    \textbf{Achse 3:} Nieren links, Leukämie, Lymphom und Melanome rechts. \textbf{Achse 4:} Immunzellen und Leukämie oben, Prostata unten.
   \end{kasten}
 \end{frame}
 
@@ -534,8 +834,8 @@
   \quelle{Die 5 Gene mit den größten positiven und negativen Ladungen. Das Vorzeichen einer Achse ist willkürlich.}
   \vspace{0.05cm}
   \begin{kasten}
-    Die Achsen sind \textbf{Gewebeprogramme}: Nervengewebe (\gen{GFAP}, \gen{PLP1}), Leber (\gen{ALB}, \gen{ALDOB}),
-    Plattenepithel (\gen{KRT17}), Drüsen (\gen{AGR2}), Immunzellen (\gen{TLR8}).
+    Die Achsen sind \textbf{Gewebeprogramme}: Nervengewebe (\gen{GFAP}, \gen{PLP1}), Leber (\gen{ALDOB}, \gen{PKLR}),
+    Plattenepithel (\gen{KRT17}), Drüsen (\gen{AGR2}), Immunzellen (\gen{S100A8}, \gen{GZMK}).
   \end{kasten}
 \end{frame}
 
@@ -554,7 +854,7 @@
     \end{column}
     \begin{column}{0.48\textwidth}
       \begin{entscheidung}
-        \small Die ersten \textbf{50 Hauptkomponenten} (73\,\% der Varianz) sind die Eingabe für UMAP und das Clustering.
+        \small Die ersten \textbf{50 Hauptkomponenten} (72\,\% der Varianz) sind die Eingabe für UMAP und das Clustering.
       \end{entscheidung}
     \end{column}
   \end{columns}
@@ -621,7 +921,7 @@
   \quelle{Für jede Probe die 15 nächsten Nachbarn in den 50 Hauptkomponenten, gemittelt pro Tumortyp.}
   \vspace{0.05cm}
   \begin{kasten}
-    Die meisten Tumortypen sind \textbf{klar abgegrenzt}. Am wenigsten eigenständig: Mastdarm, Speiseröhre, Gallengang, Karzinosarkom.
+    Die meisten Tumortypen sind \textbf{klar abgegrenzt}. Am wenigsten eigenständig: Mastdarm, Speiseröhre, Karzinosarkom, Gallengang.
   \end{kasten}
 \end{frame}
 
@@ -672,9 +972,9 @@
 \begin{frame}{Was das UMAP-Bild leistet}
   \centering
   \vspace{0.2cm}
-  \kennzahl{84,1\,\%}{Nachbarn aus demselben Tumortyp\\in 50 Hauptkomponenten}\hfill
-  \kennzahl{81,8\,\%}{Nachbarn aus demselben Tumortyp\\im UMAP-Bild}\hfill
-  \kennzahl{35,2\,\%}{der Nachbarn einzelner Proben\\im Bild erhalten}
+  \kennzahl{84,3\,\%}{Nachbarn aus demselben Tumortyp\\in 50 Hauptkomponenten}\hfill
+  \kennzahl{82,2\,\%}{Nachbarn aus demselben Tumortyp\\im UMAP-Bild}\hfill
+  \kennzahl{34,1\,\%}{der Nachbarn einzelner Proben\\im Bild erhalten}
   \vspace{0.6cm}
   \raggedright
   \begin{kasten}
