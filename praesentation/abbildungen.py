@@ -299,6 +299,62 @@ def verteilung(werte, mittel, varianz, log, name):
 
 
 verteilung(R[stich].ravel(), R.mean(axis=0), R.var(axis=0), False, "werte_roh.pdf")
+
+# nur die Verteilung der Einträge (Folie „Die Werte vor der Transformation“)
+werte = R[stich].ravel()
+fig, ax = plt.subplots(figsize=(5.0, 2.0))
+ax.hist(werte[werte <= 5000], bins=100, color=BLAU)
+ax.set_xlabel("Wert (abgeschnitten bei 5.000)")
+ax.text(0.97, 0.92, f"{prozent((werte > 5000).mean())} der Werte liegen über 5.000,\neinzelne bei mehreren Millionen",
+        transform=ax.transAxes, ha="right", va="top", fontsize=6.8, color=MUTED)
+ax.xaxis.set_major_formatter(lambda v_, _: de(v_))
+ax.set_ylabel("Anzahl Einträge")
+ax.set_yticks([])
+ax.grid(False)
+speichern(fig, "werte_roh_verteilung.pdf")
+
+# nur die Varianz pro Gen gegen den Mittelwert pro Gen (Folie „Die Varianz der Gene vor der Transformation“)
+mittel_r, var_r0 = R.mean(axis=0), R.var(axis=0)
+top = np.zeros(len(var_r0), bool)
+top[np.argsort(var_r0)[::-1][:50]] = True
+fig, ax = plt.subplots(figsize=(5.0, 2.3))
+ax.scatter(mittel_r[~top], var_r0[~top] / 1e9, s=2, color=GRAU_SERIE, alpha=0.5, linewidths=0, rasterized=True)
+ax.scatter(mittel_r[top], var_r0[top] / 1e9, s=6, color=ORANGE, linewidths=0, rasterized=True)
+i_alb = list(symbol[~nan_gen]).index("ALB")
+ax.annotate("Albumin (ALB)", (mittel_r[i_alb], var_r0[i_alb] / 1e9), xytext=(-8, -2), textcoords="offset points",
+            fontsize=6.6, color=TEXT, ha="right", va="center")
+ax.text(0.03, 0.92, f"ein Punkt pro Gen ({de(len(var_r0))} Gene)\norange: die 50 Gene mit der größten Varianz",
+        transform=ax.transAxes, ha="left", va="top", fontsize=6.8, color=MUTED)
+ax.set_xlabel("Mittelwert des Gens")
+ax.set_ylabel("Varianz (Milliarden)")
+ax.xaxis.set_major_formatter(lambda v_, _: de(v_))
+ax.yaxis.set_major_formatter(lambda v_, _: de(v_))
+ax.grid(axis="both")
+speichern(fig, "varianz_roh.pdf")
+
+# Beispiel für die Varianz: Albumin (ALB) und der Anteil der stärksten Gene an der Gesamtvarianz
+sym_r = symbol[~nan_gen]
+var_r = R.var(axis=0)
+o = np.argsort(var_r)[::-1]
+gesamt = var_r.sum()
+alb = R[:, list(sym_r).index("ALB")]
+leber = np.isin(study, ["LIHC", "CHOL"])
+fig, a2 = plt.subplots(figsize=(5.4, 0.95))
+teile_v = [("ALB", var_r[o[0]]), ("Gene 2 bis 10", var_r[o[1:10]].sum()), ("Gene 11 bis 50", var_r[o[10:50]].sum()),
+           (f"übrige {de(len(o) - 50)} Gene", var_r[o[50:]].sum())]
+links = 0
+for (name, w_), farbe in zip(teile_v, [ORANGE, BLAU, "#7fb0e8", HELLGRAU]):
+    a2.barh(0, w_ / gesamt * 100, left=links, color=farbe, height=0.6, edgecolor="white", linewidth=1)
+    a2.text(links + w_ / gesamt * 50, 0, prozent(w_ / gesamt), ha="center", va="center", fontsize=6.8,
+            color="white" if farbe != HELLGRAU else TEXT, fontweight="semibold")
+    a2.text(links + w_ / gesamt * 50, -0.48, name, ha="center", va="top", fontsize=6.4, color=TEXT)
+    links += w_ / gesamt * 100
+a2.set_xlim(0, 100)
+a2.set_ylim(-0.6, 0.45)
+a2.set_title(f"Anteil an der Varianz aller {de(len(o))} Gene", loc="left")
+a2.axis("off")
+speichern(fig, "varianz_anteil.pdf")
+print(f"  ALB: Anteil {var_r[o[0]] / gesamt:.1%}, Leber-Median {np.median(alb[leber]):.0f}, Max {alb.max():.0f}, andere Median {np.median(alb[~leber]):.1f}")
 L = np.log2(R + 1)
 del R
 verteilung(L[stich].ravel(), L.mean(axis=0), L.var(axis=0), True, "werte_log.pdf")
@@ -308,15 +364,17 @@ print("5 Genauswahl")
 sym_ok = symbol[~nan_gen]
 anteil = pd.DataFrame(L > 0).groupby(study).mean().max(axis=0).to_numpy()
 var = L.var(axis=0)
+mittel_zwei = np.array([L[:, list(sym_ok).index(g_)].mean() for g_ in ["ALB", "SERPINC1"]])   # für das Beispiel zur Hauptkomponentenanalyse
 filt = (anteil >= 0.5) & (var > 0)
 geschlecht = np.isin(sym_ok, GESCHLECHTSGENE)
 v = np.sort(var[filt & ~geschlecht])[::-1]
 fig, ax = plt.subplots(figsize=(5.0, 1.95))
 x = np.arange(1, len(v) + 1)
-ax.fill_between(x[:5000], v[:5000], color=BLAU, alpha=0.25, linewidth=0)
+k90 = int(np.searchsorted(np.cumsum(v) / v.sum(), 0.9)) + 1                 # so viele Gene tragen 90 % der Varianz (wie D2)
+ax.fill_between(x[:k90], v[:k90], color=BLAU, alpha=0.25, linewidth=0)
 ax.plot(x, v, color=BLAU, lw=1.6)
-ax.axvline(5000, color=MUTED, lw=0.8, ls=(0, (3, 2)))
-ax.text(5150, v[0] * 0.8, f"5.000 Gene behalten:\n{prozent(v[:5000].sum() / v.sum())} der Gesamtvarianz",
+ax.axvline(k90, color=MUTED, lw=0.8, ls=(0, (3, 2)))
+ax.text(k90 + 150, v[0] * 0.8, f"{de(k90)} Gene behalten:\n{prozent(v[:k90].sum() / v.sum())} der Gesamtvarianz",
         fontsize=6.8, color=TEXT, va="top")
 ax.set_xlabel("Gene, nach Varianz sortiert")
 ax.set_ylabel(r"Varianz von $\log_2(x+1)$")
@@ -324,7 +382,7 @@ ax.xaxis.set_major_formatter(lambda v_, _: de(v_))
 ax.set_xlim(0, len(v))
 ax.set_ylim(0, None)
 speichern(fig, "varianz_gene.pdf")
-print(f"  {len(v)} Gene, Anteil der Top 5000 an der Varianz {v[:5000].sum() / v.sum():.1%}")
+print(f"  {len(v)} Gene, {k90} Gene tragen {v[:k90].sum() / v.sum():.1%} der Varianz")
 
 # ================================================================ 6. Geschlechtsgene
 print("6 Geschlechtsgene")
@@ -405,7 +463,7 @@ prot = pd.DataFrame(PARAMETER["protokoll"])
 SCHRITTE = {"alle Proben": "Rohdaten", "A1 nur Primärtumoren": "nur Primärtumoren", "A3 ohne Do_not_use": "ohne „nicht verwenden“",
             "A4 nur Illumina HiSeq": "nur Illumina HiSeq", "A2 eine Probe pro Patient": "eine Probe pro Patient",
             "B1 Gene mit fehlenden Werten entfernt": "ohne Gene mit fehlenden Werten", "D1 Expressionsfilter": "Expressionsfilter",
-            "D3 Geschlechtsgene entfernt": "ohne Geschlechtsgene", "D2 5000 Gene mit größter Varianz": "5.000 Gene mit größter Varianz"}
+            "D3 Geschlechtsgene entfernt": "ohne Geschlechtsgene", "D2 Gene mit 90% der Varianz": "Gene mit 90 % der Varianz"}
 prot["name"] = prot["Schritt"].map(SCHRITTE)
 fig, axes = plt.subplots(1, 2, figsize=(5.8, 2.35), sharey=True)
 y = np.arange(len(prot))[::-1]
@@ -481,6 +539,67 @@ for j, ax in enumerate(axes):
     ax.set_xlim(-lim, lim)
 fig.tight_layout(w_pad=0.6)
 speichern(fig, "pca_ladungen.pdf")
+
+# Beispiel Dimensionsreduktion: zwei Lebergene, die sich gemeinsam ändern, lassen sich durch eine Achse beschreiben
+namen = genes["name"].tolist()
+G2 = Xc[:, [namen.index("ALB"), namen.index("SERPINC1")]].astype(np.float64)       # zentriert, log2
+_, s2, v2 = np.linalg.svd(G2, full_matrices=False)
+anteil1 = s2[0] ** 2 / (s2**2).sum()
+richtung = v2[0] * np.sign(v2[0, 0])
+leber = np.isin(study, ["LIHC", "CHOL"])
+fig, ax = plt.subplots(figsize=(3.3, 2.6))
+ax.scatter(G2[~leber, 0], G2[~leber, 1], s=1.5, color=GRAU_SERIE, alpha=0.4, linewidths=0, rasterized=True, label="andere Tumortypen")
+ax.scatter(G2[leber, 0], G2[leber, 1], s=2.5, color=ORANGE, alpha=0.7, linewidths=0, rasterized=True, label="Leber und Gallengang")
+lang = 15
+ax.annotate("", xy=richtung * lang, xytext=-richtung * 4, arrowprops=dict(arrowstyle="-|>", color=BLAU, lw=1.8))
+ax.text(*(richtung * lang + np.array([-0.5, 1.2])), f"eine Achse:\n{prozent(anteil1)} der Streuung", fontsize=6.6, color=BLAU,
+        ha="right", va="bottom", fontweight="semibold")
+ax.set_xlabel("Albumin (ALB), log$_2$, zentriert")
+ax.set_ylabel("Antithrombin (SERPINC1), log$_2$, zentriert")
+ax.set_aspect("equal", adjustable="datalim")
+ax.legend(loc="lower right", fontsize=6.2, markerscale=3, handletextpad=0.2)
+speichern(fig, "zwei_gene.pdf")
+print(f"  ALB/SERPINC1: Korrelation {np.corrcoef(G2.T)[0, 1]:.2f}, erste Achse {anteil1:.1%}")
+
+# Hauptkomponentenanalyse Schritt für Schritt an denselben zwei Genen
+roh2 = G2 + mittel_zwei                                                            # log2-Werte vor dem Zentrieren
+score = G2 @ richtung
+fig, axes = plt.subplots(1, 3, figsize=(5.9, 2.05), gridspec_kw={"width_ratios": [1, 1, 1.15]})
+for ax, D_, titel in [(axes[0], roh2, "1. Zentrieren"), (axes[1], G2, "2. Achsen finden")]:
+    ax.scatter(D_[~leber, 0], D_[~leber, 1], s=0.8, color=GRAU_SERIE, alpha=0.35, linewidths=0, rasterized=True)
+    ax.scatter(D_[leber, 0], D_[leber, 1], s=1.2, color=ORANGE, alpha=0.6, linewidths=0, rasterized=True)
+    ax.set_title(titel, loc="left")
+    ax.set_aspect("equal", adjustable="datalim")
+    ax.tick_params(labelsize=5.5)
+    ax.set_xlabel("Albumin (ALB)", fontsize=6.2)
+axes[0].set_ylabel("Antithrombin (SERPINC1)", fontsize=6.2)
+m0 = mittel_zwei
+axes[0].plot(*m0, marker="+", ms=9, mew=1.6, color=BLAU)
+axes[0].annotate("Mittelwert", m0, xytext=(m0[0] + 4, m0[1] - 5), fontsize=5.8, color=BLAU,
+                 arrowprops=dict(arrowstyle="-", color=BLAU, lw=0.6))
+axes[1].axhline(0, color=HELLGRAU, lw=0.5)
+axes[1].axvline(0, color=HELLGRAU, lw=0.5)
+zweite = np.array([-richtung[1], richtung[0]])
+axes[1].annotate("", xy=richtung * 16, xytext=(0, 0), arrowprops=dict(arrowstyle="-|>", color=BLAU, lw=1.6))
+axes[1].annotate("", xy=zweite * 6, xytext=(0, 0), arrowprops=dict(arrowstyle="-|>", color=TEXT, lw=1.2))
+axes[1].text(*(richtung * 16 + np.array([-0.5, 1.5])), f"Achse 1\n{prozent(anteil1)}", fontsize=5.8, color=BLAU, ha="right", va="bottom", fontweight="semibold")
+axes[1].text(*(zweite * 6 + np.array([-0.5, 0.5])), f"Achse 2\n{prozent(1 - anteil1)}", fontsize=5.8, color=TEXT, ha="right", va="bottom")
+a3 = axes[2]
+rng_s = np.random.default_rng(SEED)
+a3.scatter(score[~leber], rng_s.uniform(-1, 1, (~leber).sum()), s=0.8, color=GRAU_SERIE, alpha=0.35, linewidths=0, rasterized=True)
+a3.scatter(score[leber], rng_s.uniform(-1, 1, leber.sum()), s=1.2, color=ORANGE, alpha=0.6, linewidths=0, rasterized=True)
+a3.set_ylim(-3.2, 1.6)
+a3.set_yticks([])
+a3.spines["left"].set_visible(False)
+a3.grid(False)
+a3.set_title("3. Score: eine Zahl pro Tumor", loc="left")
+a3.set_xlabel("Score auf Achse 1", fontsize=6.2)
+a3.tick_params(labelsize=5.5)
+gew = f"Score = {de(richtung[0], 2)} · ALB + {de(richtung[1], 2)} · SERPINC1"
+a3.text(0.5, 0.06, gew, transform=a3.transAxes, ha="center", va="bottom", fontsize=5.9, color=BLAU)
+fig.tight_layout(w_pad=1.0)
+speichern(fig, "pca_schritte.pdf")
+print(f"  Ladungen Achse 1: ALB {richtung[0]:.2f}, SERPINC1 {richtung[1]:.2f}; Mittelwerte {m0.round(2)}")
 
 # ================================================================ UMAP
 print("10 UMAP")

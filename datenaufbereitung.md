@@ -281,7 +281,8 @@ Viele Entscheidungen hängen voneinander ab (zum Beispiel entscheidet die Proben
 - 598 Proben (Endometriumkarzinom, Dickdarm- und Mastdarmkrebs), dazu 33 Proben ohne Geräteangabe.
 - Optionen: entfernen (sauberer, aber das Endometriumkarzinom verliert über die Hälfte, Mastdarmkrebs fast alles) · behalten und der EB++-Korrektur (*Empirical Bayes*) vertrauen ·
   behalten und später prüfen, ob diese Proben eigene Gruppen bilden.
-- Bisher: entfernt (nur Illumina HiSeq). Zu prüfen: Wie viel ändert sich, wenn man sie behält?
+- Bisher: entfernt (nur Illumina HiSeq). **Entscheidung:** behalten und der EB++-Korrektur der PanCanAtlas-Autoren vertrauen. Ein kleiner Rest-Effekt des Geräts ist innerhalb der drei Tumortypen
+  messbar, die Ähnlichkeit der Tumortypen ändert sich ohne das ältere Gerät aber praktisch nicht (Prüfung in `notebook_aufbereitung.ipynb`, Abschnitt 8).
 
 **A5. Weitere Qualitätsfilter?**
 - Kandidaten: Proben mit auffällig vielen Nullen (Schwelle?), die 15 Proben mit Geschlechtswiderspruch, Ausreißer in der Hauptkomponentenanalyse.
@@ -306,8 +307,8 @@ Viele Entscheidungen hängen voneinander ab (zum Beispiel entscheidet die Proben
 
 | Option | Folge |
 |---|---|
-| Gene mit fehlenden Werten entfernen | bei den Primärtumoren vom Illumina HiSeq 3.820 von 20.531 Genen; darunter Markergene wie `KRT5` (Keratin 5); 1.463 dieser Gene wären sonst unter den 5.000 Genen mit der größten Varianz |
-| Proben mit fehlenden Werten entfernen | 1.058 von 9.104 Proben; **Magenkrebs, Speiseröhrenkrebs und akute myeloische Leukämie fallen komplett weg**, das Ovarialkarzinom fast komplett |
+| Gene mit fehlenden Werten entfernen | bei den Primärtumoren 4.196 von 20.531 Genen; darunter Markergene wie `KRT5` (Keratin 5) und die meisten Gene des Y-Chromosoms; 2.202 dieser Gene wären sonst unter den 9.089 Genen mit der größten Varianz |
+| Proben mit fehlenden Werten entfernen | 1.674 von 9.720 Proben; **Magenkrebs, Speiseröhrenkrebs, Ovarialkarzinom und akute myeloische Leukämie fallen komplett weg**, vom Endometriumkarzinom zwei Drittel |
 | mit 0 auffüllen | einfach; aber ein fehlender Wert heißt nicht „nicht exprimiert“ und betrifft nur bestimmte Tumortypen → könnte künstliche Unterschiede erzeugen |
 | mit dem Mittelwert pro Gen auffüllen (über Proben ohne fehlende Werte) | neutral für die Hauptkomponentenanalyse, zieht die betroffenen Tumortypen aber zur Mitte |
 | Gene nur entfernen, wenn mehr als x % fehlen, Rest auffüllen | Kompromiss; Schwelle zu wählen |
@@ -358,6 +359,7 @@ Viele Entscheidungen hängen voneinander ab (zum Beispiel entscheidet die Proben
 - Übliche Werte: $k$ = 1.000 bis 5.000. Verringert Rechenaufwand und Rauschen; die Streuung fällt nach den ersten paar Tausend Genen deutlich ab.
 - Zu bedenken: Varianz über alle Proben bevorzugt Gene, die große Tumortypen trennen. Alternative: Varianz in einer ausgeglichenen Stichprobe (A7).
 - Bisher: alle 16.711 verbleibenden Gene. **Vorschlag:** zum Beispiel $k$ = 5.000 als Standard, $k$ = 1.000 und „alle“ als Robustheitsprüfung.
+- **Umgesetzt:** $k$ nicht fest, sondern so gewählt, dass die ausgewählten Gene zusammen **90 % der Gesamtvarianz** (auf der logarithmierten Skala) tragen. Das ergibt 9.089 von 16.331 Genen.
 
 **D3. Geschlechtsgene entfernen?**
 - `XIST` (*X-inactive specific transcript*), `RPS4Y1` (ribosomales Protein S4 vom Y-Chromosom) und weitere Gene auf X- und Y-Chromosom streuen stark
@@ -365,8 +367,8 @@ Viele Entscheidungen hängen voneinander ab (zum Beispiel entscheidet die Proben
 - Optionen: behalten · nur die Gene des Y-Chromosoms und `XIST` entfernen · alle Gene auf X- und Y-Chromosom entfernen.
 - Problem: Die Datei enthält keine Zuordnung zu Chromosomen; dafür bräuchten wir eine zusätzliche Tabelle, zum Beispiel vom National Center for Biotechnology Information
   oder vom HUGO Gene Nomenclature Committee (Ausschuss für Gennamen der Human Genome Organisation), verknüpft über die Entrez-Nummer.
-- Bisher: nichts entfernt. Die Gene des Y-Chromosoms und `XIST` sind noch in den Daten (anders als zunächst angenommen, fallen sie nicht über den Filter für fehlende Werte weg).
-  **Vorschlag:** zuerst prüfen, ob in den ersten Hauptkomponenten eine Geschlechtsachse auftaucht; wenn ja, Geschlechtsgene entfernen.
+- Bisher: nichts entfernt. Mit den Proben vom älteren Gerät (A4) fallen die meisten Gene des Y-Chromosoms schon über den Filter für fehlende Werte weg; `XIST`, `TSIX` und zwei Y-Gene bleiben.
+  **Vorschlag:** zuerst prüfen, ob in den ersten Hauptkomponenten eine Geschlechtsachse auftaucht; die verbliebenen Geschlechtsgene in jedem Fall entfernen.
 
 **D4. Namen der Gene:** 29 Gene ohne Symbol und das doppelte `SLC35E2` bekommen die Entrez-Nummer angehängt (schon umgesetzt). Keine weitere Entscheidung nötig.
 
@@ -377,7 +379,7 @@ Viele Entscheidungen hängen voneinander ab (zum Beispiel entscheidet die Proben
 - **Vorschlag:** keine weitere Korrektur, stattdessen kontrollieren (E2).
 
 **E2. Welche Störgrößen prüfen wir?**
-- Ergebnisse (Hauptkomponenten, UMAP-Darstellung, Cluster) einfärben nach: Platte, Sequenzierzentrum, Sequenziergerät (falls Proben vom Illumina Genome Analyzer behalten werden),
+- Ergebnisse (Hauptkomponenten, UMAP-Darstellung, Cluster) einfärben nach: Platte, Sequenzierzentrum, Sequenziergerät (innerhalb von Endometriumkarzinom, Dick- und Mastdarmkrebs),
   Geschlecht, Alter, Anteil Nullen.
 - Am aussagekräftigsten **innerhalb** eines großen Tumortyps (zum Beispiel Brustkrebs nach Platte), weil dort der Tumortyp als Erklärung wegfällt.
 
@@ -414,22 +416,22 @@ Spalte „Ergebnis“: Umsetzung und Prüfung in `notebook_aufbereitung.ipynb`.
 | Nummer | Entscheidung | erster Durchlauf der Hauptkomponentenanalyse (vor der Aufbereitung) | Vorschlag | Ergebnis (`notebook_aufbereitung.ipynb`) |
 |---|---|---|---|---|
 | A1 | Probentypen | nur Primärtumoren `01`/`03` | beibehalten | umgesetzt |
-| A2 | eine Probe pro Patient | erste nach Barcode | beibehalten | umgesetzt (betrifft 3 Proben) |
+| A2 | eine Probe pro Patient | erste nach Barcode | beibehalten | umgesetzt (betrifft 4 Proben) |
 | A3 | `Do_not_use` („nicht verwenden“) | entfernt | beibehalten | umgesetzt |
-| A4 | Proben vom Illumina Genome Analyzer | entfernt | Auswirkung prüfen | Proben vom älteren Gerät liegen bevorzugt neben ihresgleichen → **entfernt** |
+| A4 | Proben vom Illumina Genome Analyzer | entfernt | Auswirkung prüfen | kleiner Rest-Effekt innerhalb der Tumortypen, Ähnlichkeit der Tumortypen unverändert → **behalten** (Korrektur der PanCanAtlas-Autoren) |
 | A5 | weitere Qualitätsfilter | keine | erst ansehen | Proben mit vielen Nullen oder Geschlechtswiderspruch liegen bei ihrem Tumortyp → **kein Filter** |
 | A6 | Tumortypen | alle 33 | beibehalten | umgesetzt |
 | A7 | Gruppengrößen | nicht ausgeglichen | ausgeglichene Stichprobe als Vergleich | ändert nichts → **kein Ausgleich** |
-| B1 | fehlende Werte (NaN) | Gene entfernt | beibehalten, nach D1 erneut prüfen | 1.463 entfernte Gene wären wichtig (Keratine), Auffüllen mit 0 ändert das Ergebnis aber nicht → **Gene entfernen** |
+| B1 | fehlende Werte (NaN) | Gene entfernt | beibehalten, nach D1 erneut prüfen | 2.202 entfernte Gene wären wichtig (Keratine, Y-Chromosom), Auffüllen mit 0 ändert das Ergebnis aber kaum → **Gene entfernen** |
 | B2 | negative Werte | auf 0 gesetzt | beibehalten | umgesetzt |
 | C1 | Log-Transformation | $\log_2(x+1)$ | beibehalten | umgesetzt |
 | C4 | Standardisieren | nein | nein, als Vergleich ja | nein; Vergleich noch offen |
 | C5 | Proben neu normalisieren | nein | nein | nein |
-| D1 | Expressionsfilter | keiner | einführen | umgesetzt; entfernt nach B1 kaum noch Gene |
-| D2 | $k$ Gene mit größter Varianz | alle | $k$ = 5.000, Vergleich 1.000 und alle | $k$ = 5.000; Vergleich noch offen |
-| D3 | Geschlechtsgene | nichts entfernt | prüfen, gegebenenfalls entfernen | Geschlechtsachse auf Hauptkomponente 9 → **16 Gene entfernt** (aus den Daten bestimmt, ohne Chromosomentabelle) |
+| D1 | Expressionsfilter | keiner | einführen | umgesetzt; entfernt nach B1 keine Gene mehr |
+| D2 | $k$ Gene mit größter Varianz | alle | $k$ = 5.000, Vergleich 1.000 und alle | so viele Gene, dass sie 90 % der Varianz tragen ($k$ = 9.089); Vergleich noch offen |
+| D3 | Geschlechtsgene | nichts entfernt | prüfen, gegebenenfalls entfernen | keine Geschlechtsachse (die meisten Y-Gene fallen schon durch B1 weg) → **4 verbliebene Gene entfernt** (aus den Daten bestimmt, ohne Chromosomentabelle) |
 | E1 | zusätzliche Batch-Korrektur | keine | keine | keine |
-| E2 | Kontrolle der Störgrößen | keine | einfärben nach Platte, Sequenzierzentrum, Geschlecht | kleiner Platteneffekt ab Hauptkomponente 8, deutlich innerhalb des Brustkrebses; kleiner Rest-Zentrumseffekt beim Magenkrebs |
+| E2 | Kontrolle der Störgrößen | keine | einfärben nach Platte, Sequenzierzentrum, Geschlecht | kleiner Platteneffekt ab Hauptkomponente 7, deutlich innerhalb des Brustkrebses; kleiner Rest-Zentrumseffekt beim Magenkrebs |
 | E3 | Tumorreinheit | nicht verwendet | offen | offen |
 | F1 | Anzahl Hauptkomponenten | 50 | 50, Vergleich 20 und 100 | 100 gespeichert; Vergleich noch offen |
 | F2 | Abstandsmaß | euklidisch | euklidisch, gegebenenfalls Korrelation als Vergleich | offen |

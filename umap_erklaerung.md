@@ -1,7 +1,7 @@
 # UMAP: Wie das Verfahren funktioniert
 
 Dieses Dokument erklärt UMAP (*Uniform Manifold Approximation and Projection*) Schritt für Schritt und bezieht es auf unser Projekt.
-Die Berechnungen stehen in `notebook_umap.ipynb`; dort werden die ersten 50 Hauptkomponenten aus `notebook_pca.ipynb` eingebettet (9.104 Primärtumoren).
+Die Berechnungen stehen in `notebook_umap.ipynb`; dort werden die ersten 50 Hauptkomponenten aus `notebook_pca.ipynb` eingebettet (9.720 Primärtumoren).
 
 ---
 
@@ -31,16 +31,16 @@ Das Verfahren hat zwei Schritte:
 Jede Probe ist ein Punkt im $\mathbb{R}^{50}$: ihre Koordinaten (Scores $Z = U S$) auf den ersten 50 Hauptkomponenten.
 Abstände sind **euklidisch** in diesem Raum.
 
-- Die Hauptkomponentenanalyse ist eine Drehung der zentrierten Genmatrix. Der Abstand im $\mathbb{R}^{50}$ ist daher der euklidische Abstand der 5.000 $\log_2$-Expressionswerte,
+- Die Hauptkomponentenanalyse ist eine Drehung der zentrierten Genmatrix. Der Abstand im $\mathbb{R}^{50}$ ist daher der euklidische Abstand der 9.089 $\log_2$-Expressionswerte,
   nachdem man sie auf die ersten 50 Achsen projiziert hat. Die Einheit bleibt $\log_2$-Expression.
 - Die Scores sind **nicht** pro Komponente standardisiert. Hauptkomponente 1 hat die größte Streuung und trägt am meisten zu den Abständen bei, Hauptkomponente 50 nur wenig.
   Würde man jede Komponente auf Varianz 1 bringen („Weißen“), zählten auch die verrauschten hinteren Achsen voll mit.
 - Andere Abstandsmaße wären möglich (Parameter `metric`, zum Beispiel Kosinus- oder Korrelationsabstand).
   Wir bleiben beim euklidischen Abstand, damit UMAP zur Hauptkomponentenanalyse und zur Nachbarschaftsanalyse passt.
 
-**Warum die Hauptkomponentenanalyse vorher?** UMAP könnte auch direkt auf den 5.000 Genen laufen. Die 50 Hauptkomponenten entfernen aber Rauschen
+**Warum die Hauptkomponentenanalyse vorher?** UMAP könnte auch direkt auf den 9.089 Genen laufen. Die 50 Hauptkomponenten entfernen aber Rauschen
 (in sehr vielen Dimensionen werden alle Abstände ähnlich) und machen die Nachbarsuche viel schneller.
-Das Ergebnis hängt kaum davon ab: Der Anteil der Nachbarn vom gleichen Tumortyp liegt bei 84,1 % (50 Hauptkomponenten) gegenüber 85,2 % (alle 5.000 Gene),
+Das Ergebnis hängt kaum davon ab: Der Anteil der Nachbarn vom gleichen Tumortyp liegt bei 84,4 % (50 Hauptkomponenten) gegenüber 85,6 % (alle 9.089 Gene),
 siehe Abschnitt 5.2 im UMAP-Notebook.
 
 ### 2.2 Die k nächsten Nachbarn
@@ -49,7 +49,7 @@ Für jede Probe werden die $k$ nächsten Nachbarn gesucht, bei uns `n_neighbors=
 
 - UMAP zählt die Probe selbst mit: Jede Probe hat also **14 echte Nachbarn**.
 - Ab etwa 4.000 Punkten berechnet `umap-learn` nicht mehr alle Abstände, sondern sucht die Nachbarn **näherungsweise** (Verfahren NN-Descent aus dem Paket `pynndescent`, mit Zufallsanteil).
-  Bei unseren 9.104 Proben ist das der Fall. Die exakten Nachbarn berechnen wir im UMAP-Notebook (Abschnitt 2) separat durch Vergleich aller Paare.
+  Bei unseren 9.720 Proben ist das der Fall. Die exakten Nachbarn berechnen wir im UMAP-Notebook (Abschnitt 2) separat durch Vergleich aller Paare.
 
 Die Nachbarsuche legt fest, **welche** Kanten es gibt. Die Zahl ist für alle Proben gleich.
 
@@ -234,10 +234,10 @@ Im UMAP-Notebook (Abschnitt 5) sind `n_neighbors` $\in \{5, 15, 50\}$, `min_dist
 
 | Kennzahl | Wert |
 |---|---|
-| Nachbarn aus dem $\mathbb{R}^{50}$, die auch in der Ebene Nachbarn sind | 35,2 % |
-| gleiche Nachbarn zwischen den Startwerten 0, 1 und 2 | 58–60 % |
-| Anteil der Nachbarn vom gleichen Tumortyp im $\mathbb{R}^{50}$ | 84,1 % |
-| Anteil der Nachbarn vom gleichen Tumortyp in der Ebene | 81,8 % |
+| Nachbarn aus dem $\mathbb{R}^{50}$, die auch in der Ebene Nachbarn sind | 33,1 % |
+| gleiche Nachbarn zwischen den Startwerten 0, 1 und 2 | 57–62 % |
+| Anteil der Nachbarn vom gleichen Tumortyp im $\mathbb{R}^{50}$ | 84,4 % |
+| Anteil der Nachbarn vom gleichen Tumortyp in der Ebene | 82,0 % |
 
 Die einzelnen Nachbarschaften sind also unsicher, die grobe Aussage (Proben liegen bei ihrem Tumortyp) bleibt stabil.
 Deshalb rechnen wir die Nachbarschaftsanalyse auf den 50 Hauptkomponenten und nutzen UMAP vor allem als Bild.

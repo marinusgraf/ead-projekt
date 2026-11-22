@@ -404,7 +404,7 @@
     \foreach \px/\name/\tiefe/\fa/\fb/\wa/\wb in {0/Probe 1/{20 Millionen\\Reads}/0.8/0.2/800/200,
                                                     7.8/Probe 2/{40 Millionen\\Reads}/1.6/0.4/1.600/400} {
       \begin{scope}[shift={(\px,0)}]
-        \node[titel] at (0,1.9) {\name};
+        \node[titel] at (-0.4,1.9) {\name};
         % Gewebe
         \begin{scope}[shift={(-2.9,0.3)},scale=0.6]
           \fill[petrolhell,draw=petrol!60,line width=0.8pt]
@@ -435,17 +435,18 @@
 % ------------------------------------------------------------------
 \begin{frame}{Normalisierung: an einem Beispiel}
   \centering
-  {\small Die beiden Proben von eben: Probe 2 wurde \textbf{doppelt so tief} sequenziert.}
 
-  \vspace{0.1cm}
+  \vspace{0.15cm}
   \begin{tikzpicture}[>={Stealth[length=5pt]},
-      tab/.style={draw=blaurand,fill=blauhell,rounded corners=2pt,inner sep=5pt,font=\footnotesize},
-      ergebnis/.style={draw=petrol!70,fill=petrolhell,rounded corners=2pt,inner sep=5pt,font=\footnotesize},
-      titel/.style={font=\footnotesize\bfseries,text=blau,anchor=south},
+      tab/.style={draw=blaurand,fill=blauhell,rounded corners=2pt,inner sep=5pt,font=\footnotesize,
+                  minimum width=5.0cm,minimum height=2.3cm},
+      ergebnis/.style={tab,draw=petrol!70,fill=petrolhell},
+      titel/.style={font=\footnotesize\bfseries,text=blau,anchor=south,inner sep=3pt},
       erkl/.style={font=\scriptsize,text=grau,align=center,anchor=north},
       pfeil/.style={->,grau,line width=0.9pt}]
-    \node[tab] (roh) at (0,0) {%
-      \begin{tabular}{@{}lrr@{}}
+    % Breite gesamt 13,8 cm: Tabelle 5,0 | Abstand 0,7 | Rechenregel 2,4 | Abstand 0,7 | Tabelle 5,0
+    \node[tab] (roh) at (2.5,0) {%
+      \begin{tabular}{@{}l@{\hspace{8pt}}r@{\hspace{8pt}}r@{}}
                 & Probe 1 & Probe 2\\\midrule
         Gen A   & 800     & 1.600\\
         Gen B   & 200     & 400\\
@@ -453,15 +454,11 @@
         \midrule
         \textbf{oberes Quartil} & \textbf{400} & \textbf{800}
       \end{tabular}};
-    \node[titel] at (roh.north) {gezählte Reads};
-    \node[erkl] at ([yshift=-0.12cm]roh.south) {Probe 2 hat überall doppelte Werte,\\nur weil mehr gelesen wurde};
-
-    \node[draw=grau!60,rounded corners=2pt,fill=white,align=center,inner sep=6pt,font=\footnotesize] (op) at (5.0,0)
-      {jeden Wert\\$\div$ \textbf{oberes Quartil}\\$\times$ \textbf{1.000}};
-    \draw[pfeil] (roh.east) -- (op.west);
-
-    \node[ergebnis] (norm) at (9.6,0) {%
-      \begin{tabular}{@{}lrr@{}}
+    \node[draw=grau!60,rounded corners=2pt,fill=white,align=center,inner sep=4pt,font=\footnotesize,
+          minimum width=2.4cm,text width=2.2cm,minimum height=2.3cm] (op) at (6.9,0)
+      {jeden Wert\\$\div$ \textbf{oberes}\\\textbf{Quartil}\\$\times$ \textbf{1.000}};
+    \node[ergebnis] (norm) at (11.3,0) {%
+      \begin{tabular}{@{}l@{\hspace{8pt}}r@{\hspace{8pt}}r@{}}
                 & Probe 1 & Probe 2\\\midrule
         Gen A   & 2.000   & 2.000\\
         Gen B   & 500     & 500\\
@@ -469,26 +466,22 @@
         \midrule
         \textbf{oberes Quartil} & \textbf{1.000} & \textbf{1.000}
       \end{tabular}};
+    \draw[pfeil] (roh.east) -- (op.west);
     \draw[pfeil] (op.east) -- (norm.west);
+    \node[titel] at (roh.north) {gezählte Reads};
     \node[titel,text=petrol] at (norm.north) {normalisierte Werte};
+    \node[erkl] at ([yshift=-0.12cm]roh.south) {Probe 2 hat überall doppelte Werte,\\nur weil mehr gelesen wurde};
     \node[erkl] at ([yshift=-0.12cm]norm.south) {beide Proben jetzt\\direkt vergleichbar};
-  \end{tikzpicture}
-
-  \vspace{-0.25cm}
-  \begin{columns}[t]
-    \begin{column}{0.48\textwidth}
-      \begin{kasten}
+    % zwei Kästen: gleiche Breite und Höhe, Kanten bündig mit den Tabellen
+    \node[anchor=north west,inner sep=0pt] at (0,-2.95) {\begin{kasten}[width=6.65cm,equal height group=norm,nobeforeafter]
         \kastentitel{Oberes Quartil}
         \small Der Wert, unter dem 75 Prozent der Gene liegen.
-      \end{kasten}
-    \end{column}
-    \begin{column}{0.48\textwidth}
-      \begin{kasten}
+      \end{kasten}};
+    \node[anchor=north east,inner sep=0pt] at (13.8,-2.95) {\begin{kasten}[width=6.65cm,equal height group=norm,nobeforeafter]
         \kastentitel{Warum nicht die Summe?}
         \small Wenige extrem aktive Gene würden sie bestimmen.
-      \end{kasten}
-    \end{column}
-  \end{columns}
+      \end{kasten}};
+  \end{tikzpicture}
 \end{frame}
 
 % ------------------------------------------------------------------
@@ -544,7 +537,74 @@
   \end{columns}
 \end{frame}
 
-% ------------------------------------------------------------------
+% ------------------------------------------------------------------ Forschungsfrage
+\begin{frame}{Forschungsfrage}
+  \centering
+  {\large\bfseries\color{petrol}Wie ähneln sich verschiedene Tumortypen in ihrer Genexpression?\par}
+  \vspace{0.1cm}
+  {\small\color{grau}Welche liegen nah beieinander, welche sind klar abgegrenzt, und lässt sich das erklären?\par}
+  \vspace{0.25cm}
+  \begin{tikzpicture}[>={Stealth[length=6pt]},scale=0.9,every node/.style={transform shape}]
+    % links: Matrix
+    \begin{scope}[x=0.2cm,y=0.2cm]
+      \pgfmathsetseed{7}
+      \foreach \r in {0,...,11} {
+        \pgfmathtruncatemacro{\gruppe}{\r/4}
+        \ifcase\gruppe \def\gf{blau}\or \def\gf{petrol}\else \def\gf{orange}\fi
+        \fill[\gf] (-1.2,-\r) rectangle ++(0.75,-0.9);
+        \foreach \c in {0,...,13} {
+          \pgfmathsetmacro{\basis}{(\gruppe==0 && \c<4) || (\gruppe==1 && \c>4 && \c<9) || (\gruppe==2 && \c>9) ? 70 : 12}
+          \pgfmathsetmacro{\w}{max(4,min(95,\basis+22*rnd-11))}
+          \fill[blau!\w!white] (\c,-\r) rectangle ++(0.9,-0.9);
+        }
+      }
+      \node[anchor=north,font=\scriptsize,text=grau,align=center] at (6.4,-12.3) {9.720 Proben $\times$ 20.531 Gene\\jede Probe: ein Punkt in 20.531 Dimensionen};
+    \end{scope}
+    % Pfeil
+    \draw[->,petrol,line width=1.4pt] (3.3,-1.2) -- (5.6,-1.2);
+    \node[font=\footnotesize\bfseries,text=petrol,anchor=south] at (4.45,-1.1) {Dimensions-};
+    \node[font=\footnotesize\bfseries,text=petrol,anchor=north] at (4.45,-1.3) {reduktion};
+    % rechts: Punktwolke in zwei Dimensionen
+    \begin{scope}[shift={(6.2,-2.45)}]
+      \draw[linie] (0,0) rectangle (4.2,2.5);
+      \pgfmathsetseed{11}
+      \foreach \cx/\cy/\f in {0.9/1.75/blau,1.55/0.8/petrol,3.3/1.2/orange} {
+        \foreach \i in {1,...,16} {
+          \pgfmathsetmacro{\px}{\cx+0.4*(rnd+rnd-1)}
+          \pgfmathsetmacro{\py}{\cy+0.3*(rnd+rnd-1)}
+          \fill[\f,opacity=0.85] (\px,\py) circle (1.4pt);
+        }
+      }
+      \draw[<->,grau] (1.05,1.45) -- (1.35,1.05);
+      \node[font=\tiny,text=grau,anchor=south west] at (0.08,0.08) {nah: ähnlich};
+      \draw[<->,grau] (2.05,1.0) -- (2.8,1.15);
+      \node[font=\tiny,text=grau,anchor=south] at (3.3,0.08) {fern: verschieden};
+      \node[anchor=north,font=\scriptsize,text=grau,align=center] at (2.1,-0.06) {jede Probe: ein Punkt in 2 Dimensionen\\Farbe: Tumortyp};
+    \end{scope}
+  \end{tikzpicture}
+
+  \vspace{-0.1cm}
+  \begin{columns}[t]
+    \begin{column}{0.32\textwidth}
+      \begin{kasten}[equal height group=frage]
+        \kastentitel{Problem}
+        \footnotesize 20.531 Dimensionen sind nicht anschaubar, Abstände werden durch Rauschen unscharf.
+      \end{kasten}
+    \end{column}
+    \begin{column}{0.32\textwidth}
+      \begin{kasten}[equal height group=frage]
+        \kastentitel{Idee}
+        \footnotesize Viele Gene ändern sich gemeinsam. Wenige Achsen fassen sie zusammen.
+      \end{kasten}
+    \end{column}
+    \begin{column}{0.32\textwidth}
+      \begin{kasten}[equal height group=frage]
+        \kastentitel{Methoden}
+        \footnotesize \textbf{Hauptkomponenten\-analyse}: deutbare Achsen.\\ \textbf{UMAP}: Nachbarschaften als Bild.
+      \end{kasten}
+    \end{column}
+  \end{columns}
+\end{frame}
 
 % ==================================================================
 \abschnittsfolie{2.\enspace Die Aufbereitung}
@@ -650,8 +710,8 @@
     \begin{column}{0.46\textwidth}
       \begin{kasten}
         \kastentitel{Geprüft}
-        \small Mit 0 aufgefüllt bleiben 1.599 wichtige Gene erhalten (zum Beispiel Keratine).
-        Nachbarn aus demselben Tumortyp: \textbf{85,0\,\%} statt \textbf{84,3\,\%}. Kaum ein Unterschied.
+        \small Mit 0 aufgefüllt bleiben 2.202 wichtige Gene erhalten (zum Beispiel Keratine).
+        Nachbarn aus demselben Tumortyp: \textbf{85,0\,\%} statt \textbf{84,4\,\%}. Kaum ein Unterschied.
       \end{kasten}
     \end{column}
   \end{columns}
@@ -659,33 +719,53 @@
 
 % ------------------------------------------------------------------ Log-Transformation
 \begin{frame}{Die Werte vor der Transformation}
-  \bild{werte_roh.pdf}
+  \bild[0.85\textwidth]{werte_roh_verteilung.pdf}
   \vspace{0.15cm}
   \begin{kasten}
-    Stark \textbf{rechtsschief}. Wenige sehr hoch exprimierte Gene tragen fast die ganze Varianz:
-    Jede Abstands- und Varianzrechnung würde nur sie sehen.
+    Stark \textbf{rechtsschief}: Die meisten Werte sind klein, wenige riesig.
   \end{kasten}
 \end{frame}
 
-\begin{frame}{Transformation}
-  \begin{entscheidung}
-    \gross{$x \mapsto \log_2(x + 1)$}\quad{\color{grau}negative Werte vorher auf 0}
-  \end{entscheidung}
+\begin{frame}{Die Varianz der Gene vor der Transformation}
+  \bild[0.74\textwidth]{varianz_roh.pdf}
+  \vspace{0.15cm}
+  \begin{kasten}
+    Die Varianz wächst mit dem Mittelwert: Stark abgelesene Gene schwanken absolut am meisten.
+  \end{kasten}
+\end{frame}
+
+\begin{frame}{Wenige Gene tragen fast die ganze Varianz}
+  \begin{columns}[T]
+    \begin{column}{0.5\textwidth}
+      \small
+      \begin{tabular}{@{}l r@{}}
+        \toprule
+        \textbf{Tumortyp} & \textbf{Albumin (Median)} \\
+        \midrule
+        Leber (LIHC)              & \textbf{1.212.420} \\
+        Gallengang (CHOL)         & \textbf{51.506} \\
+        Bauchspeicheldrüse (PAAD) & 101 \\
+        Brust (BRCA)              & 8 \\
+        Lunge (LUAD)              & 2 \\
+        \midrule
+        Mittelwert aller Proben   & 58.422 \\
+        \bottomrule
+      \end{tabular}
+    \end{column}
+    \begin{column}{0.46\textwidth}
+      \begin{kasten}
+        \small Albumin (ALB) ist ein Eiweiß, das fast nur die Leber bildet.\\[3pt]
+        \textbf{Varianz} = mittlere quadrierte Abweichung vom Mittelwert. Die Leberproben liegen über 1 Million vom Mittelwert entfernt, quadriert zählt das enorm.
+      \end{kasten}
+    \end{column}
+  \end{columns}
   \vspace{0.3cm}
-  \begin{itemize}
-    \item Ein Unterschied von 1 heißt \textbf{Verdopplung}, egal auf welchem Niveau.
-    \item $+1$: damit $0$ definiert bleibt ($\log_2 1 = 0$).
-    \item Negative Werte (1,25 Millionen, alle zwischen $-1$ und $0$): Nebenwirkung der Batch-Korrektur, bedeuten „nicht exprimiert“.
-  \end{itemize}
+  \bild[0.8\textwidth]{varianz_anteil.pdf}
 \end{frame}
 
-\begin{frame}{Die Werte nach der Transformation}
+\begin{frame}{Log-Transformation}
+  \centering
   \bild{werte_log.pdf}
-  \vspace{0.15cm}
-  \begin{kasten}
-    Annähernd symmetrisch (plus eine Spitze bei 0: nicht exprimiert). Die Varianz verteilt sich auf viele Gene:
-    Die 50 stärksten tragen nur noch \textbf{3\,\%} statt \textbf{81\,\%}.
-  \end{kasten}
 \end{frame}
 
 % ------------------------------------------------------------------ Genauswahl
@@ -693,16 +773,17 @@
   \bild[0.78\textwidth]{varianz_gene.pdf}
   \vspace{0.1cm}
   \begin{kasten}
-    Wenige Gene streuen stark, die meisten kaum. Die 5.000 Gene mit der größten Varianz tragen \textbf{72\,\%} der Gesamtvarianz.
+    Wenige Gene streuen stark, die meisten kaum. Die 9.089 Gene mit der größten Varianz tragen zusammen \textbf{90\,\%} der Gesamtvarianz.
   \end{kasten}
 \end{frame}
 
 \begin{frame}{Welche Gene behalten wir?}
   \begin{entscheidung}
-    \gross{Die 5.000 Gene mit der größten Varianz}\quad{\color{grau}16.331 $\rightarrow$ 5.000 Gene}
+    \gross{Gene, die 90\,\% der Varianz tragen}\quad{\color{grau}16.331 $\rightarrow$ 9.089 Gene}
   \end{entscheidung}
   \vspace{0.2cm}
   \begin{itemize}
+    \item Gene nach Varianz sortieren und so lange aufnehmen, bis sie zusammen \textbf{90\,\% der Gesamtvarianz} tragen.
     \item Varianz auf der \textbf{logarithmierten} Skala, sonst gewinnen immer die hoch exprimierten Gene.
     \item Vorher: Gene entfernen, die in keinem Tumortyp bei mindestens der Hälfte der Proben exprimiert sind (trifft nach dem vorigen Schritt kein Gen mehr).
     \item Pro Gen \textbf{zentrieren}, nicht standardisieren: stark streuende Gewebegene sollen die Achsen prägen.
@@ -727,7 +808,7 @@
   \begin{itemize}
     \item Gefragt ist der Tumortyp, nicht das Geschlecht der Patienten.
     \item $r^2$ wird \textbf{innerhalb} der Tumortypen gemessen: Prostata-Gene zählen nicht als Geschlechtsgene.
-    \item Danach erklärt das Geschlecht auf keiner der ersten 20 Hauptkomponenten mehr als 0,1\,\%.
+    \item Danach erklärt das Geschlecht auf keiner der ersten 20 Hauptkomponenten mehr als 0,2\,\%.
   \end{itemize}
 \end{frame}
 
@@ -737,7 +818,7 @@
   \vspace{0.1cm}
   \begin{kasten}
     Der \textbf{Tumortyp} erklärt den Großteil fast jeder Achse. Die Platte (Batch) erklärt etwas mehr als der Zufall,
-    am meisten auf den Hauptkomponenten 8, 11 und 12.
+    am meisten auf den Hauptkomponenten 7, 8, 11 und 13.
   \end{kasten}
 \end{frame}
 
@@ -745,7 +826,7 @@
   \bild[0.88\textwidth]{platte_brustkrebs.pdf}
   \vspace{0.1cm}
   \begin{kasten}
-    Eigene Hauptkomponentenanalyse nur für Brustkrebs: Achse 3 wird zu \textbf{51\,\%} durch die Platte erklärt (Zufall: 4\,\%).
+    Eigene Hauptkomponentenanalyse nur für Brustkrebs: Achse 3 wird zu \textbf{57\,\%} durch die Platte erklärt (Zufall: 4\,\%).
     Die Platten verschieben sich schrittweise, vermutlich mit dem Zeitpunkt der Verarbeitung.
   \end{kasten}
 \end{frame}
@@ -767,47 +848,164 @@
   \bild{protokoll.pdf}
   \vspace{0.15cm}
   \begin{kasten}
-    \textbf{9.720 Primärtumoren $\times$ 5.000 Gene}, logarithmiert und zentriert. Geprüft und verworfen:
+    \textbf{9.720 Primärtumoren $\times$ 9.089 Gene}, logarithmiert und zentriert. Geprüft und verworfen:
     Ausgleich der Gruppengrößen und weitere Qualitätsfilter. Beides ändert die Nachbarschaften nicht.
   \end{kasten}
 \end{frame}
 
 % ==================================================================
-\abschnittsfolie{3.\enspace Hauptkomponenten\-analyse}
+\abschnittsfolie{3.\enspace Dimensions\-reduktion}
 
-\begin{frame}{Idee}
-  \begin{columns}[c]
-    \begin{column}{0.42\textwidth}
-      \centering
-      \begin{tikzpicture}[>={Stealth[length=5pt]}]
-        \pgfmathsetseed{4}
-        \begin{scope}[rotate=28]
-          \foreach \i in {1,...,70} {
-            \pgfmathsetmacro{\a}{2.0*(rnd+rnd+rnd-1.5)}
-            \pgfmathsetmacro{\b}{0.7*(rnd+rnd+rnd-1.5)}
-            \fill[blaurand,opacity=0.8] (\a,\b) circle (1.3pt);
-          }
-          \draw[->,petrol,line width=1.3pt] (0,0) -- (2.4,0) node[right,font=\footnotesize] {1};
-          \draw[->,orange!85!black,line width=1.3pt] (0,0) -- (0,1.1) node[above,font=\footnotesize] {2};
-        \end{scope}
-        \node[font=\scriptsize,text=grau] at (0,-2.0) {Punkte: Proben; Pfeile: Hauptkomponenten};
-      \end{tikzpicture}
+\begin{frame}{Das Ziel}
+  \centering
+  {\small\color{grau}Forschungsfrage\par}
+  {\large\bfseries\color{petrol}Wie ähneln sich verschiedene Tumortypen in ihrer Genexpression?\par}
+  \vspace{0.3cm}
+  \begin{kasten}
+    \textbf{Ähnlich heißt: kleiner Abstand.} Jeder Tumor ist ein Punkt mit 9.089 Koordinaten (seine $\log_2$-Werte).
+    Zwei Tumoren sind ähnlich, wenn ihre Punkte nah beieinander liegen.
+  \end{kasten}
+  \vspace{0.2cm}
+  {\small Die Dimensionsreduktion soll drei Dinge leisten:\par}
+  \vspace{0.1cm}
+  \begin{columns}[t]
+    \begin{column}{0.32\textwidth}
+      \begin{kasten}[equal height group=ziel]
+        \kastentitel{Sehen}
+        \footnotesize Ein Bild, in dem ähnliche Tumortypen nah beieinander liegen.
+      \end{kasten}
     \end{column}
-    \begin{column}{0.54\textwidth}
-      \begin{itemize}
-        \item Neue Achsen in Richtung der \textbf{größten Streuung}, senkrecht zueinander.
-        \item Jede Achse ist eine gewichtete Summe aller Gene (\textbf{Ladungen}).
-        \item Berechnung: abgeschnittene Singulärwertzerlegung $X \approx U_k \Sigma_k V_k^\top$, nur die ersten 100 Achsen.
-      \end{itemize}
+    \begin{column}{0.32\textwidth}
+      \begin{kasten}[equal height group=ziel]
+        \kastentitel{Messen}
+        \footnotesize Aus welchen Tumortypen stammen die nächsten Nachbarn eines Tumors?
+      \end{kasten}
+    \end{column}
+    \begin{column}{0.32\textwidth}
+      \begin{kasten}[equal height group=ziel]
+        \kastentitel{Erklären}
+        \footnotesize Welche Gene trennen die Tumortypen? Gleiches Organ, Gewebe oder Herkunft?
+      \end{kasten}
     \end{column}
   \end{columns}
+\end{frame}
+
+\begin{frame}{Warum weniger Dimensionen? Ein Beispiel}
+  \begin{columns}[c]
+    \begin{column}{0.5\textwidth}
+      \bild{zwei_gene.pdf}
+    \end{column}
+    \begin{column}{0.48\textwidth}
+      \begin{itemize}
+        \item Albumin und Antithrombin werden beide in der \textbf{Leber} gebildet. Sie steigen und fallen gemeinsam (Korrelation 0,81).
+        \item Eine Achse entlang der Wolke beschreibt \textbf{92\,\%} ihrer Streuung: ein \textbf{Leberprogramm} statt zwei Gene.
+        \item So arbeiten viele Gene: in Programmen eines Gewebes oder Zelltyps.
+      \end{itemize}
+      \vspace{0.15cm}
+      \begin{kasten}
+        \small 9.089 Gene $\rightarrow$ \textbf{50 Achsen} mit 71\,\% der Varianz. Der Rest ist zum großen Teil Rauschen.
+      \end{kasten}
+    \end{column}
+  \end{columns}
+\end{frame}
+
+\begin{frame}{Unser Weg}
+  \centering
+  \begin{tikzpicture}[>={Stealth[length=5pt]},
+      daten/.style={draw=blaurand,fill=blauhell,rounded corners=2pt,align=center,font=\footnotesize,text=text,
+                    minimum height=1.1cm,text width=2.1cm},
+      methode/.style={draw=petrol,fill=petrolhell,rounded corners=2pt,align=center,font=\footnotesize\bfseries,text=petrol,
+                      minimum height=0.8cm,text width=2.4cm},
+      ziel/.style={align=left,font=\footnotesize,text=text,text width=3.4cm,anchor=west},
+      pfeil/.style={->,grau,line width=0.8pt}]
+    \node[daten] (m) at (0,0) {\textbf{9.720 Tumoren}\\$\times$ 9.089 Gene};
+    \node[methode,text width=3.0cm] (hka) at (3.2,0) {Hauptkomponenten\-analyse};
+    \node[daten] (achsen) at (6.4,0) {\textbf{50 Achsen}\\71\,\% der Varianz};
+    \draw[pfeil] (m) -- (hka);
+    \draw[pfeil] (hka) -- (achsen);
+    % drei Wege
+    \node[methode,text width=1.9cm] (lad) at (9.1,1.4) {Ladungen};
+    \node[methode,text width=1.9cm] (nb) at (9.1,0) {15 nächste Nachbarn};
+    \node[methode,text width=1.9cm] (um) at (9.1,-1.4) {UMAP};
+    \foreach \z in {lad,nb,um} \draw[pfeil] (achsen.east) -- (\z.west);
+    \node[ziel] at (10.3,1.4) {\textbf{Erklären}: welche Gene?};
+    \node[ziel] at (10.3,0) {\textbf{Messen}: ähnliche\\Tumortypen};
+    \node[ziel] at (10.3,-1.4) {\textbf{Sehen}: Bild in\\2 Dimensionen};
+  \end{tikzpicture}
+
+  \vspace{0.2cm}
+  \begin{columns}[t]
+    \begin{column}{0.48\textwidth}
+      \begin{kasten}[equal height group=weg]
+        \kastentitel{Hauptkomponentenanalyse}
+        \small Linear. Achsen sind gewichtete Summen der Gene und damit deutbar. Erhält vor allem die großen Unterschiede.
+      \end{kasten}
+    \end{column}
+    \begin{column}{0.48\textwidth}
+      \begin{kasten}[equal height group=weg]
+        \kastentitel{UMAP}
+        \small Nichtlinear. Erhält vor allem die lokalen Nachbarschaften. Abstände zwischen Gruppen sind nicht deutbar.
+      \end{kasten}
+    \end{column}
+  \end{columns}
+\end{frame}
+
+% ==================================================================
+\abschnittsfolie{4.\enspace Hauptkomponenten\-analyse}
+
+\begin{frame}{Funktionsweise an zwei Genen}
+  \bild[0.9\textwidth]{pca_schritte.pdf}
+  \vspace{0.05cm}
+  \begin{columns}[t]
+    \begin{column}{0.32\textwidth}
+      \begin{kasten}[equal height group=hka]
+        \kastentitel{1. Zentrieren}
+        \footnotesize Von jedem Gen den Mittelwert abziehen: Die Wolke liegt um den Nullpunkt.
+      \end{kasten}
+    \end{column}
+    \begin{column}{0.32\textwidth}
+      \begin{kasten}[equal height group=hka]
+        \kastentitel{2. Achsen finden}
+        \footnotesize Achse 1: Richtung der größten Streuung. Achse 2: senkrecht dazu.
+      \end{kasten}
+    \end{column}
+    \begin{column}{0.32\textwidth}
+      \begin{kasten}[equal height group=hka]
+        \kastentitel{3. Projizieren}
+        \footnotesize Jeder Tumor bekommt eine Koordinate (\textbf{Score}): Leber rechts, Rest links.
+      \end{kasten}
+    \end{column}
+  \end{columns}
+\end{frame}
+
+\begin{frame}{Von 2 auf 9.089 Gene}
+  \centering
+  \footnotesize
+  \begin{tabularx}{\textwidth}{@{}>{\raggedright\arraybackslash}p{2.6cm} Y Y@{}}
+    \toprule
+    & \textbf{Beispiel: 2 Gene} & \textbf{unsere Daten: 9.089 Gene} \\
+    \midrule
+    Daten & 9.720 Tumoren $\times$ 2 Gene & 9.720 Tumoren $\times$ 9.089 Gene \\
+    Achse (\textbf{Ladungen}) & 2 Gewichte: 0,84 für ALB, 0,55 für SERPINC1 & 9.089 Gewichte; die größten zeigen, was die Achse bedeutet \\
+    \textbf{Score} eines Tumors & gewichtete Summe seiner 2 Werte & gewichtete Summe seiner 9.089 Werte \\
+    Streuung auf Achse 1 & 92\,\% & 14\,\% \\
+    Zahl der Achsen & 2 & bis zu 9.089, wir behalten \textbf{50} (71\,\%) \\
+    \bottomrule
+  \end{tabularx}\par
+  \vspace{0.3cm}
+  \raggedright
+  \begin{kasten}
+    \kastentitel{Berechnung}
+    \footnotesize Singulärwertzerlegung der zentrierten Matrix $X = U \Sigma V^\top$: Zeilen von $V^\top$ = Ladungen,
+    $U\Sigma$ = Scores, $\sigma_j^2 / (n-1)$ = Varianz von Achse $j$. Berechnet werden nur die 100 größten Achsen.
+  \end{kasten}
 \end{frame}
 
 \begin{frame}{Wie viel Varianz erklären die Hauptkomponenten?}
   \bild{pca_varianz.pdf}
   \vspace{0.1cm}
   \begin{kasten}
-    Statt 5.000 Genen genügen wenige Dutzend Achsen: 10 erklären 53\,\%, 50 rund 72\,\%.
+    Statt 9.089 Genen genügen wenige Dutzend Achsen: 10 erklären 51\,\%, 50 rund 71\,\%.
     Ab etwa 15 bis 20 flacht die Kurve ab, aber ohne klaren Knick.
   \end{kasten}
 \end{frame}
@@ -835,7 +1033,7 @@
   \vspace{0.05cm}
   \begin{kasten}
     Die Achsen sind \textbf{Gewebeprogramme}: Nervengewebe (\gen{GFAP}, \gen{PLP1}), Leber (\gen{ALDOB}, \gen{PKLR}),
-    Plattenepithel (\gen{KRT17}), Drüsen (\gen{AGR2}), Immunzellen (\gen{S100A8}, \gen{GZMK}).
+    Plattenepithel (\gen{KRT17}), Drüsen (\gen{AGR2}), Immunzellen (\gen{S100A8}, \gen{GBP5}).
   \end{kasten}
 \end{frame}
 
@@ -854,14 +1052,14 @@
     \end{column}
     \begin{column}{0.48\textwidth}
       \begin{entscheidung}
-        \small Die ersten \textbf{50 Hauptkomponenten} (72\,\% der Varianz) sind die Eingabe für UMAP und das Clustering.
+        \small Die ersten \textbf{50 Hauptkomponenten} (71\,\% der Varianz) sind die Eingabe für UMAP und das Clustering.
       \end{entscheidung}
     \end{column}
   \end{columns}
 \end{frame}
 
 % ==================================================================
-\abschnittsfolie{4.\enspace UMAP}
+\abschnittsfolie{5.\enspace UMAP}
 
 \begin{frame}{Idee}
   \centering
@@ -972,9 +1170,9 @@
 \begin{frame}{Was das UMAP-Bild leistet}
   \centering
   \vspace{0.2cm}
-  \kennzahl{84,3\,\%}{Nachbarn aus demselben Tumortyp\\in 50 Hauptkomponenten}\hfill
-  \kennzahl{82,2\,\%}{Nachbarn aus demselben Tumortyp\\im UMAP-Bild}\hfill
-  \kennzahl{34,1\,\%}{der Nachbarn einzelner Proben\\im Bild erhalten}
+  \kennzahl{84,4\,\%}{Nachbarn aus demselben Tumortyp\\in 50 Hauptkomponenten}\hfill
+  \kennzahl{82,0\,\%}{Nachbarn aus demselben Tumortyp\\im UMAP-Bild}\hfill
+  \kennzahl{33,1\,\%}{der Nachbarn einzelner Proben\\im Bild erhalten}
   \vspace{0.6cm}
   \raggedright
   \begin{kasten}
