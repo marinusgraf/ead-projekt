@@ -11,6 +11,7 @@ from pathlib import Path
 
 import numpy as np
 import pandas as pd
+import matplotlib as mpl
 import matplotlib.pyplot as plt
 from matplotlib import font_manager
 from scipy.sparse.linalg import svds
@@ -608,6 +609,29 @@ streubild(ax, E, study, s=3.0, alpha=0.5, label_size=6.8)
 ohne_achsen(ax)
 legende_gruppen(ax, loc="upper center", bbox_to_anchor=(0.5, 0.0), ncol=6, fontsize=6.3, columnspacing=0.8)
 speichern(fig, "umap.pdf")
+
+# Ziel der Dimensionsreduktion: vorher Tabelle ohne sichtbare Struktur, nachher Bild mit Gruppen
+rng_z = np.random.default_rng(SEED)
+zeilen_z = rng_z.choice(len(Xc), 120, replace=False)                               # zufällige Tumoren, zufällige Reihenfolge
+spalten_z = np.sort(rng_z.choice(np.argsort(Xc.var(axis=0))[::-1][:2000], 70, replace=False))
+fig = plt.figure(figsize=(5.9, 2.55))
+a1 = fig.add_axes([0.02, 0.1, 0.33, 0.78])
+a0 = fig.add_axes([0.0, 0.1, 0.015, 0.78])
+a2 = fig.add_axes([0.5, 0.02, 0.5, 0.86])
+a1.imshow(Xc[np.ix_(zeilen_z, spalten_z)], aspect="auto", cmap="RdBu_r", vmin=-5, vmax=5, interpolation="nearest")
+a1.set_xticks([]); a1.set_yticks([])
+a1.set_title("vorher: 9.089 Gene pro Tumor", loc="left", fontsize=7.5)
+a1.set_xlabel("Spalten: Gene, Zeilen: Tumoren (Ausschnitt)", fontsize=6.2)
+a0.imshow(np.array([[mpl.colors.to_rgb(FARBE[t])] for t in study[zeilen_z]]), aspect="auto", interpolation="nearest")
+a0.axis("off")
+
+streubild(a2, E, study, s=1.2, alpha=0.5, label_size=5.6)
+ohne_achsen(a2)
+a2.set_title("nachher: 2 Dimensionen, ähnliche Tumoren nah beieinander", loc="left", fontsize=7.5)
+fig.add_artist(mpl.patches.FancyArrowPatch((0.37, 0.5), (0.48, 0.5), transform=fig.transFigure, arrowstyle="-|>",
+                                           mutation_scale=14, color=BLAU, lw=2))
+fig.text(0.425, 0.56, "Dimensions-\nreduktion", ha="center", va="bottom", fontsize=6.5, color=BLAU, fontweight="semibold")
+speichern(fig, "ziel_dimred.pdf")
 
 # Nachbarschaft: Anteil der 15 nächsten Nachbarn (50 Hauptkomponenten) pro Paar von Tumortypen
 TYPEN = [t for typen in [GRUPPEN[g][1] for g in GRUPPEN] for t in typen]
