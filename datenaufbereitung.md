@@ -391,7 +391,7 @@ Viele Entscheidungen hängen voneinander ab (zum Beispiel entscheidet die Proben
 
 **F1. Wie viele Hauptkomponenten als Eingabe für UMAP und Clustering?**
 - Kein klarer Knick; nach 15 bis 20 Hauptkomponenten flacht die Kurve ab, 50 Hauptkomponenten erklären etwa 70 % der Varianz.
-- Bisher: 50. **Vorschlag:** 50 als Standard, 20 und 100 als Vergleich.
+- **Entschieden:** UMAP bekommt alle 9.089 Gene; im Bild trennen sie die Tumortypen etwas besser als 50 Hauptkomponenten (83,3 % gegenüber 82,0 % Nachbarn vom gleichen Tumortyp). 20 und 50 Hauptkomponenten bleiben als Vergleich im UMAP-Notebook. Für das Clustering ist die Frage noch offen.
 
 **F2. Abstandsmaß**
 - Euklidischer Abstand auf den Hauptkomponenten (Standard) oder Korrelations- beziehungsweise Kosinusabstand
