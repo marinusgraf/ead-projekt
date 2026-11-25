@@ -369,17 +369,18 @@ mittel_zwei = np.array([L[:, list(sym_ok).index(g_)].mean() for g_ in ["ALB", "S
 filt = (anteil >= 0.5) & (var > 0)
 geschlecht = np.isin(sym_ok, GESCHLECHTSGENE)
 v = np.sort(var[filt & ~geschlecht])[::-1]
-fig, ax = plt.subplots(figsize=(5.0, 1.95))
+fig, ax = plt.subplots(figsize=(2.75, 2.1))
 x = np.arange(1, len(v) + 1)
 k90 = int(np.searchsorted(np.cumsum(v) / v.sum(), 0.9)) + 1                 # so viele Gene tragen 90 % der Varianz (wie D2)
 ax.fill_between(x[:k90], v[:k90], color=BLAU, alpha=0.25, linewidth=0)
 ax.plot(x, v, color=BLAU, lw=1.6)
 ax.axvline(k90, color=MUTED, lw=0.8, ls=(0, (3, 2)))
-ax.text(k90 + 150, v[0] * 0.8, f"{de(k90)} Gene behalten:\n{prozent(v[:k90].sum() / v.sum())} der Gesamtvarianz",
-        fontsize=6.8, color=TEXT, va="top")
+ax.text(k90 + 150, v[0] * 0.8, f"{de(k90)} Gene:\n{prozent(v[:k90].sum() / v.sum())} der\nGesamtvarianz",
+        fontsize=7.2, color=TEXT, va="top")
 ax.set_xlabel("Gene, nach Varianz sortiert")
 ax.set_ylabel(r"Varianz von $\log_2(x+1)$")
 ax.xaxis.set_major_formatter(lambda v_, _: de(v_))
+ax.xaxis.set_major_locator(plt.MultipleLocator(4000))
 ax.set_xlim(0, len(v))
 ax.set_ylim(0, None)
 speichern(fig, "varianz_gene.pdf")
@@ -457,31 +458,6 @@ ax.set_xlabel("Platte (mindestens 15 Proben)")
 ax.set_ylabel(f"Hauptkomponente {j_pl + 1}")
 speichern(fig, "platte_brustkrebs.pdf")
 print(f"  Brustkrebs: HK {j_pl + 1} ({evb[j_pl]:.1%}), Platte erklärt {eta2(Zb[:, j_pl], pl_b):.0%}")
-
-# ================================================================ 8. Protokoll der Aufbereitung
-print("8 Protokoll")
-prot = pd.DataFrame(PARAMETER["protokoll"])
-SCHRITTE = {"alle Proben": "Rohdaten", "A1 nur Primärtumoren": "nur Primärtumoren", "A3 ohne Do_not_use": "ohne „nicht verwenden“",
-            "A4 nur Illumina HiSeq": "nur Illumina HiSeq", "A2 eine Probe pro Patient": "eine Probe pro Patient",
-            "B1 Gene mit fehlenden Werten entfernt": "ohne Gene mit fehlenden Werten", "D1 Expressionsfilter": "Expressionsfilter",
-            "D3 Geschlechtsgene entfernt": "ohne Geschlechtsgene", "D2 Gene mit 90% der Varianz": "Gene mit 90 % der Varianz"}
-prot["name"] = prot["Schritt"].map(SCHRITTE)
-fig, axes = plt.subplots(1, 2, figsize=(5.8, 2.35), sharey=True)
-y = np.arange(len(prot))[::-1]
-for ax, spalte, farbe in [(axes[0], "Proben", BLAU), (axes[1], "Gene", ORANGE)]:
-    werte = prot[spalte].to_numpy()
-    geaendert = np.r_[True, werte[1:] != werte[:-1]]
-    ax.barh(y, werte, color=np.where(geaendert, farbe, HELLGRAU), height=0.66)
-    for yi, w_, g in zip(y, werte, geaendert):
-        ax.text(w_ + werte.max() * 0.015, yi, de(w_), va="center", fontsize=6.6, color=TEXT if g else MUTED)
-    ax.set_xlim(0, werte.max() * 1.25)
-    ax.set_xticks([])
-    ax.set_title(spalte, loc="left")
-    ax.grid(False)
-    ax.spines["bottom"].set_visible(False)
-    ax.tick_params(axis="y", length=0)
-axes[0].set_yticks(y, prot["name"])
-speichern(fig, "protokoll.pdf")
 
 # ================================================================ PCA
 print("9 Hauptkomponentenanalyse")

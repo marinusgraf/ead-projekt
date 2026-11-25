@@ -623,7 +623,7 @@
     \node[schritt] (s2) at (4.35,0) {{\footnotesize\bfseries Batch-Korrektur (EB++)}\\[2pt]
       {\scriptsize Gerät und Zentrum}\\{\scriptsize pro Gen herausgerechnet}};
     \node[schritt] (s3) at (8.85,0) {{\footnotesize\bfseries Qualitätsprüfung}\\[2pt]
-      {\scriptsize „nicht verwenden“ markiert:}\\{\scriptsize 184 Proben, nicht entfernt}};
+      {\scriptsize 184 Proben mit}\\{\scriptsize „nicht verwenden“ markiert}};
     \foreach \s/\n in {s1/1,s2/2,s3/3} \node[nr] at (\s.north west) {\n};
     \draw[pfeil] (s1) -- (s2);
     \draw[pfeil] (s2) -- (s3);
@@ -658,15 +658,12 @@
 \end{frame}
 
 % ------------------------------------------------------------------ Probentypen
-\begin{frame}{Welche Proben gibt es?}
-  \bild[0.9\textwidth]{probentypen.pdf}
-\end{frame}
-
 \begin{frame}{Welche Proben behalten wir?}
-  \bild[0.9\textwidth]{probentypen.pdf}
+  \bild[0.82\textwidth]{probentypen.pdf}
   \vspace{0.1cm}
   \begin{entscheidung}[fonttitle=\scriptsize\bfseries, toptitle=0.5pt, bottomtitle=0.5pt, top=2pt, bottom=2pt]
-    {\normalsize\bfseries\color{petrol}Nur Primärtumoren}\quad{\small\color{grau}11.069 $\rightarrow$ 9.879 Proben}
+    {\normalsize\bfseries\color{petrol}Nur Primärtumoren, eine Probe pro Patient}\quad{\small\color{grau}11.069 $\rightarrow$ 9.720 Proben}\\[1pt]
+    {\footnotesize Entfernt: 1.190 andere Probentypen, 155 „nicht verwenden“, 4 doppelte Patienten}
   \end{entscheidung}
 \end{frame}
 
@@ -683,11 +680,11 @@
     \midrule
     Leukämie (LAML)          & 100\,\% & 3.766 \\
     Magen (STAD)             & 100\,\% & 3.766 \\
-    Dickdarm (COAD)          & 37\,\%  & 3.024 \\
-    Mastdarm (READ)          & 42\,\%  & 3.024 \\
-    Gebärmutterkörper (UCEC) & 67\,\%  & 3.024 \\
     Speiseröhre (ESCA)       & 100\,\% & 1.455 \\
     Eierstock (OV)           & 100\,\% & 1.455 \\
+    Gebärmutterkörper (UCEC) & 67\,\%  & 3.024 \\
+    Mastdarm (READ)          & 42\,\%  & 3.024 \\
+    Dickdarm (COAD)          & 37\,\%  & 3.024 \\
     Prostata (PRAD)          & 7\,\%   & 1.443 \\
     \midrule
     \textbf{zusammen}        &         & \textbf{4.196} \\
@@ -696,25 +693,16 @@
 \end{frame}
 
 \begin{frame}{Was tun mit den fehlenden Werten?}
+  \begin{itemize}\setlength{\itemsep}{0.25cm}
+    \item \textbf{Proben entfernen?} Magen, Speiseröhre, Eierstock und Leukämie fielen ganz weg.
+    \item \textbf{Auffüllen?} Manche Gene haben in einem Tumortyp keinen einzigen Wert: Jede Auffüllung wäre erfunden.
+    \item \textbf{Gene entfernen?} Kostet 2.202 wichtige Gene (zum Beispiel Keratine), aber keinen Tumortyp.
+      Geprüft: Nachbarn aus demselben Tumortyp \textbf{84,4\,\%}, mit 0 aufgefüllt \textbf{85,0\,\%}. Kaum ein Unterschied.
+  \end{itemize}
+  \vspace{0.35cm}
   \begin{entscheidung}
     \gross{Gene mit fehlenden Werten entfernen}\quad{\color{grau}20.531 $\rightarrow$ 16.335 Gene}
   \end{entscheidung}
-  \vspace{0.2cm}
-  \begin{columns}[t]
-    \begin{column}{0.5\textwidth}
-      \begin{itemize}
-        \item Proben entfernen? Magen, Speiseröhre, Eierstock und Leukämie fielen ganz weg.
-        \item Auffüllen? Ganze Tumortypen ohne einen einzigen Wert: Jede Auffüllung wäre erfunden.
-      \end{itemize}
-    \end{column}
-    \begin{column}{0.46\textwidth}
-      \begin{kasten}
-        \kastentitel{Geprüft}
-        \small Mit 0 aufgefüllt bleiben 2.202 wichtige Gene erhalten (zum Beispiel Keratine).
-        Nachbarn aus demselben Tumortyp: \textbf{85,0\,\%} statt \textbf{84,4\,\%}. Kaum ein Unterschied.
-      \end{kasten}
-    \end{column}
-  \end{columns}
 \end{frame}
 
 % ------------------------------------------------------------------ Log-Transformation
@@ -769,25 +757,22 @@
 \end{frame}
 
 % ------------------------------------------------------------------ Genauswahl
-\begin{frame}{Wie viel streuen die Gene?}
-  \bild[0.78\textwidth]{varianz_gene.pdf}
-  \vspace{0.1cm}
-  \begin{kasten}
-    Wenige Gene streuen stark, die meisten kaum. Die 9.089 Gene mit der größten Varianz tragen zusammen \textbf{90\,\%} der Gesamtvarianz.
-  \end{kasten}
-\end{frame}
-
 \begin{frame}{Welche Gene behalten wir?}
+  \begin{columns}[c]
+    \begin{column}{0.5\textwidth}
+      \begin{itemize}\setlength{\itemsep}{0.3cm}
+        \item \textbf{Kaum Verlust:} Die 7.242 am schwächsten streuenden Gene (44\,\% aller Gene) tragen zusammen nur \textbf{10\,\% der Varianz}.
+        \item \textbf{Kaum Nutzen:} Sie schwanken wenig von Probe zu Probe und helfen kaum, Tumortypen zu unterscheiden.
+      \end{itemize}
+    \end{column}
+    \begin{column}{0.47\textwidth}
+      \bild[0.86\textwidth]{varianz_gene.pdf}
+    \end{column}
+  \end{columns}
+  \vspace{0.1cm}
   \begin{entscheidung}
-    \gross{Gene, die 90\,\% der Varianz tragen}\quad{\color{grau}16.331 $\rightarrow$ 9.089 Gene}
+    \gross{7.242 Gene mit wenig Varianz entfernen}\quad{\color{grau}16.331 $\rightarrow$ 9.089 Gene}
   \end{entscheidung}
-  \vspace{0.2cm}
-  \begin{itemize}
-    \item Gene nach Varianz sortieren und so lange aufnehmen, bis sie zusammen \textbf{90\,\% der Gesamtvarianz} tragen.
-    \item Varianz auf der \textbf{logarithmierten} Skala, sonst gewinnen immer die hoch exprimierten Gene.
-    \item Vorher: Gene entfernen, die in keinem Tumortyp bei mindestens der Hälfte der Proben exprimiert sind (trifft nach dem vorigen Schritt kein Gen mehr).
-    \item Pro Gen \textbf{zentrieren}, nicht standardisieren: stark streuende Gewebegene sollen die Achsen prägen.
-  \end{itemize}
 \end{frame}
 
 % ------------------------------------------------------------------ Geschlechtsgene
@@ -845,11 +830,61 @@
 
 % ------------------------------------------------------------------ Ergebnis
 \begin{frame}{Ergebnis der Aufbereitung}
-  \bild{protokoll.pdf}
-  \vspace{0.15cm}
+  \centering
+  % Maßstab: 20.531 Gene = 3,4 cm Breite, 11.069 Proben = 1,833 cm Höhe
+  % (9.720 Proben = 1,610 cm; 9.089 Gene = 1,505 cm; 16.331 Gene = 2,704 cm)
+  \begin{tikzpicture}[>={Stealth[length=5pt]},
+      titel/.style={font=\footnotesize\bfseries,anchor=base},
+      mass/.style={font=\footnotesize,anchor=south,inner sep=1pt},
+      liste/.style={font=\scriptsize,anchor=north west,inner sep=0pt},
+      nr/.style={circle,fill=blau,text=white,font=\scriptsize\bfseries,inner sep=1.5pt},
+      weg/.style={draw=grau!60,densely dashed,line width=0.5pt}]
+    % --- Rohdaten
+    \node[titel] at (1.7,0.72) {Rohdaten};
+    \node[mass] at (1.7,0.08) {20.531 Gene};
+    \node[mass,rotate=90] at (-0.08,-0.917) {11.069 Proben};
+    \filldraw[fill=blauhell,draw=blaurand] (0,0) rectangle (3.4,-1.833);
+    \node[font=\scriptsize,text=grau,align=center] at (1.7,-0.917) {Zeile = Probe\\Spalte = Gen};
+    % --- 1. Zeilen streichen
+    \draw[->,grau,line width=0.9pt] (3.55,-0.917) -- node[nr,above=3pt] {1} (4.3,-0.917);
+    \begin{scope}[shift={(4.9,0)}]
+      \node[titel] at (1.7,0.72) {Zeilen streichen};
+      \node[mass,text=grau] at (1.7,0.08) {20.531 Gene};
+      \node[mass,rotate=90,text=blau] at (-0.08,-0.805) {\textbf{9.720} Proben};
+      \filldraw[fill=blauhell,draw=blaurand] (0,0) rectangle (3.4,-1.610);
+      \filldraw[fill=blau!25,weg] (0,-1.610) rectangle (3.4,-1.833);
+      \node[liste] at (0,-2.1) {%
+        \begin{tabular}{@{}r@{\enspace}l@{}}
+          \multicolumn{2}{@{}l@{}}{\textbf{\color{blau}−1.349 Proben}} \\
+          −1.190 & andere Probentypen \\
+          −155 & „nicht verwenden“ \\
+          −4 & doppelte Patienten \\
+        \end{tabular}};
+    \end{scope}
+    % --- 2. Spalten streichen
+    \draw[->,grau,line width=0.9pt] (8.45,-0.917) -- node[nr,above=3pt] {2} (9.2,-0.917);
+    \begin{scope}[shift={(9.8,0)}]
+      \node[titel] at (1.7,0.72) {Spalten streichen};
+      \node[mass,text=orange!80!black] at (0.753,0.08) {\textbf{9.089} Gene};
+      \node[mass,rotate=90,text=grau] at (-0.08,-0.805) {9.720 Proben};
+      \filldraw[fill=petrol!25,draw=petrol,line width=0.8pt] (0,0) rectangle (1.505,-1.610);
+      \filldraw[fill=orange!20,weg] (1.505,0) rectangle (2.704,-1.610);
+      \filldraw[fill=orange!50,weg] (2.704,0) rectangle (3.4,-1.610);
+      \node[font=\scriptsize\bfseries,text=petrol] at (0.753,-0.805) {behalten};
+      \node[font=\tiny,rotate=90] at (2.105,-0.805) {wenig Varianz};
+      \node[font=\tiny,rotate=90] at (3.052,-0.805) {fehlende Werte};
+      \node[liste] at (0,-2.1) {%
+        \begin{tabular}{@{}r@{\enspace}l@{}}
+          \multicolumn{2}{@{}l@{}}{\textbf{\color{orange!80!black}−11.442 Gene}} \\
+          −4.196 & fehlende Werte \\
+          −4 & Geschlechtsgene \\
+          −7.242 & wenig Varianz \\
+        \end{tabular}};
+    \end{scope}
+  \end{tikzpicture}
+  \vspace{0.25cm}
   \begin{kasten}
-    \textbf{9.720 Primärtumoren $\times$ 9.089 Gene}, logarithmiert und zentriert. Geprüft und verworfen:
-    Ausgleich der Gruppengrößen und weitere Qualitätsfilter. Beides ändert die Nachbarschaften nicht.
+    \textbf{9.720 Primärtumoren $\times$ 9.089 Gene}, logarithmiert und zentriert. Alle 33 Tumortypen bleiben, kein Wert fehlt mehr.
   \end{kasten}
 \end{frame}
 
