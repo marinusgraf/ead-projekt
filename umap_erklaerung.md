@@ -1,7 +1,7 @@
 # UMAP: Wie das Verfahren funktioniert
 
 Dieses Dokument erklärt UMAP (*Uniform Manifold Approximation and Projection*) Schritt für Schritt und bezieht es auf unser Projekt.
-Die Berechnungen stehen in `notebook_umap.ipynb`; dort werden die ersten 50 Hauptkomponenten aus `notebook_pca.ipynb` eingebettet (9.720 Primärtumoren).
+Die Berechnungen stehen in `notebook_umap.ipynb`; dort werden alle 9.089 Gene der aufbereiteten Matrix eingebettet (9.720 Primärtumoren).
 
 ---
 
@@ -28,20 +28,19 @@ Das Verfahren hat zwei Schritte:
 
 ### 2.1 Abstände
 
-Jede Probe ist ein Punkt im $\mathbb{R}^{50}$: ihre Koordinaten (Scores $Z = U S$) auf den ersten 50 Hauptkomponenten.
-Abstände sind **euklidisch** in diesem Raum.
+Jede Probe ist ein Punkt im $\mathbb{R}^{9089}$: ihre logarithmierten und zentrierten Expressionswerte der 9.089 ausgewählten Gene.
+Abstände sind **euklidisch** in diesem Raum. Die Einheit ist $\log_2$-Expression.
 
-- Die Hauptkomponentenanalyse ist eine Drehung der zentrierten Genmatrix. Der Abstand im $\mathbb{R}^{50}$ ist daher der euklidische Abstand der 9.089 $\log_2$-Expressionswerte,
-  nachdem man sie auf die ersten 50 Achsen projiziert hat. Die Einheit bleibt $\log_2$-Expression.
-- Die Scores sind **nicht** pro Komponente standardisiert. Hauptkomponente 1 hat die größte Streuung und trägt am meisten zu den Abständen bei, Hauptkomponente 50 nur wenig.
-  Würde man jede Komponente auf Varianz 1 bringen („Weißen“), zählten auch die verrauschten hinteren Achsen voll mit.
+- Die Gene sind **nicht** standardisiert. Gene mit großer Streuung tragen mehr zu den Abständen bei als Gene mit kleiner.
+  Würde man jedes Gen auf Varianz 1 bringen, zählten auch Gene, die kaum schwanken und vor allem Rauschen enthalten, voll mit.
 - Andere Abstandsmaße wären möglich (Parameter `metric`, zum Beispiel Kosinus- oder Korrelationsabstand).
   Wir bleiben beim euklidischen Abstand, damit UMAP zur Hauptkomponentenanalyse und zur Nachbarschaftsanalyse passt.
 
-**Warum die Hauptkomponentenanalyse vorher?** UMAP könnte auch direkt auf den 9.089 Genen laufen. Die 50 Hauptkomponenten entfernen aber Rauschen
-(in sehr vielen Dimensionen werden alle Abstände ähnlich) und machen die Nachbarsuche viel schneller.
-Das Ergebnis hängt kaum davon ab: Der Anteil der Nachbarn vom gleichen Tumortyp liegt bei 84,4 % (50 Hauptkomponenten) gegenüber 85,6 % (alle 9.089 Gene),
-siehe Abschnitt 5.2 im UMAP-Notebook.
+**Warum keine Hauptkomponentenanalyse vorher?** Üblich ist, UMAP auf die ersten Hauptkomponenten anzuwenden: Das entfernt einen Teil des Rauschens
+(in sehr vielen Dimensionen werden alle Abstände ähnlich) und macht die Nachbarsuche schneller. Bei uns trennen aber alle Gene die Tumortypen etwas besser,
+in der Eingabe (85,6 % Nachbarn vom gleichen Tumortyp gegenüber 84,4 % mit 50 Hauptkomponenten) und im Bild (83,3 % gegenüber 82,0 %).
+Die Rechenzeit ist bei 9.720 Proben kein Hindernis. Außerdem hängt das Ergebnis so nicht von einer gewählten Zahl von Hauptkomponenten ab.
+Der Preis: Das Bild erhält weniger der einzelnen Nachbarschaften (27 % gegenüber 33 %). Siehe Abschnitt 5.2 im UMAP-Notebook.
 
 ### 2.2 Die k nächsten Nachbarn
 
@@ -72,15 +71,15 @@ Die **Zahl** der Nachbarn ist also ohnehin fest. $\sigma_i$ regelt, wie **stark*
 
 **Beispiel:**
 
-| | Probe A in dichter Gruppe (BRCA, 1.083 Proben) | Probe B in dünner Gruppe (CHOL, 36 Proben) |
+| | Probe A in dichter Gruppe (THCA, 500 Proben) | Probe B in dünner Gruppe (ACC, 78 Proben) |
 |---|---|---|
-| Abstände der Nachbarn | 10; 10,5; 11; …; 14 | 30; 35; 40; …; 80 |
+| Abstände der Nachbarn (typisch, vom 1. bis zum 15.) | 88 bis 103 | 153 bis 181 |
 | $\sigma_i$ | klein | groß |
 | Zusammenhalt mit der Umgebung | gleich stark | gleich stark |
 
 Mit einem gemeinsamen Maßstab für alle Proben wären die Kanten von B fast alle schwach, B wäre im Graphen kaum verbunden.
 Durch den eigenen Maßstab gleicht UMAP Dichteunterschiede bewusst aus (daher „Uniform“ im Namen).
-**Folge:** Absolute Abstände und Dichten aus dem $\mathbb{R}^{50}$ gehen verloren.
+**Folge:** Absolute Abstände und Dichten aus dem hochdimensionalen Raum gehen verloren.
 
 ### 2.4 Symmetrisieren
 
@@ -234,13 +233,13 @@ Im UMAP-Notebook (Abschnitt 5) sind `n_neighbors` $\in \{5, 15, 50\}$, `min_dist
 
 | Kennzahl | Wert |
 |---|---|
-| Nachbarn aus dem $\mathbb{R}^{50}$, die auch in der Ebene Nachbarn sind | 33,1 % |
-| gleiche Nachbarn zwischen den Startwerten 0, 1 und 2 | 57–62 % |
-| Anteil der Nachbarn vom gleichen Tumortyp im $\mathbb{R}^{50}$ | 84,4 % |
-| Anteil der Nachbarn vom gleichen Tumortyp in der Ebene | 82,0 % |
+| Nachbarn aus dem $\mathbb{R}^{9089}$, die auch in der Ebene Nachbarn sind | 27,3 % |
+| gleiche Nachbarn zwischen den Startwerten 0, 1 und 2 | 51–54 % |
+| Anteil der Nachbarn vom gleichen Tumortyp im $\mathbb{R}^{9089}$ | 85,6 % |
+| Anteil der Nachbarn vom gleichen Tumortyp in der Ebene | 83,3 % |
 
 Die einzelnen Nachbarschaften sind also unsicher, die grobe Aussage (Proben liegen bei ihrem Tumortyp) bleibt stabil.
-Deshalb rechnen wir die Nachbarschaftsanalyse auf den 50 Hauptkomponenten und nutzen UMAP vor allem als Bild.
+Deshalb rechnen wir die Nachbarschaftsanalyse in allen Genen und nutzen UMAP vor allem als Bild.
 
 ---
 
@@ -258,4 +257,4 @@ Die Eigenvektoren zu kleinen Eigenwerten sind innerhalb der Gruppen des Graphen 
 
 **Vorsicht beim Clustern auf UMAP-Koordinaten:** Die klaren Inseln entstehen teilweise erst durch UMAP selbst (Abstoßung, `min_dist`).
 Für die Aufteilung einzelner Tumortypen (Abschnitt 3.1 im UMAP-Notebook) ist k-Means in der Ebene vertretbar, weil wir das Ergebnis gegen den histologischen Typ geprüft haben.
-Für die eigentliche Clusteranalyse sind die 50 Hauptkomponenten oder der Nachbarschaftsgraph die sauberere Grundlage.
+Für die eigentliche Clusteranalyse sind die Daten selbst (alle Gene oder die ersten Hauptkomponenten) oder der Nachbarschaftsgraph die sauberere Grundlage.

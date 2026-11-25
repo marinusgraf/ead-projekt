@@ -30,7 +30,7 @@ Die Daten sind wegen ihrer Größe **nicht im Repository**. `notebook_aufbereitu
 | `notebook_aufbereitung.ipynb` | Lädt die Daten herunter, stellt die Metadaten zu Genen und Proben zusammen (Tumortyp, Geschlecht, Sequenziergerät, Qualitätsangaben), setzt die Entscheidungen aus `datenaufbereitung.md` als eine Funktion mit Parametern um, prüft die offenen Punkte (Geschlechtsgene, fehlende Werte, Platten- und Geräteeffekte, auffällige Proben, Gruppengrößen) und speichert die fertige Analysematrix (9.720 Primärtumoren × 9.089 Gene) |
 | `notebook_pca.ipynb` | Hauptkomponentenanalyse (PCA, *Principal Component Analysis*) der aufbereiteten Primärtumoren: erklärte Varianz, Lage der Tumortypen in den ersten Hauptkomponenten, Bedeutung der Achsen (Gewebe- und Zellprogramme). Speichert die Hauptkomponenten. |
 | `umap_erklaerung.md` | Erklärung von UMAP: Nachbarschaftsgraph, lokale Gewichte, Symmetrisieren, spektrale Einbettung als Start, Optimierung, Parameter und was man aus dem Bild ablesen darf |
-| `notebook_umap.ipynb` | Baut auf den ersten 50 Hauptkomponenten auf: Welche Tumortypen ähneln sich (Nachbarschaften)? UMAP-Bild, Tumortypen, die in histologische Untertypen zerfallen, und Robustheit gegenüber Parametern, Eingabe und Zufallsstartwert |
+| `notebook_umap.ipynb` | Eingabe sind alle 9.089 Gene: Welche Tumortypen ähneln sich (Nachbarschaften)? UMAP-Bild, Tumortypen, die in histologische Untertypen zerfallen, und Robustheit gegenüber Parametern, Eingabe und Zufallsstartwert |
 
 **Reihenfolge:** zuerst `notebook_aufbereitung.ipynb` (lädt die Daten und bereitet sie auf), dann `notebook_pca.ipynb`, dann `notebook_umap.ipynb`.
 Jedes Notebook verwendet Dateien, die die vorherigen in `data/pancanatlas/` gespeichert haben:
@@ -41,7 +41,7 @@ Jedes Notebook verwendet Dateien, die die vorherigen in `data/pancanatlas/` gesp
 | `aufbereitet_proben.csv`, `aufbereitet_gene.csv` | `notebook_aufbereitung.ipynb` | Metadaten in Zeilen- beziehungsweise Spaltenreihenfolge |
 | `aufbereitet_parameter.json` | `notebook_aufbereitung.ipynb` | Parameter der Aufbereitung, Protokoll der Schritte |
 | `pca_scores.npy`, `pca_ladungen.npy`, `pca_erklaerte_varianz.npy` | `notebook_pca.ipynb` | Koordinaten der Proben, Ladungen und erklärte Varianz der ersten 100 Hauptkomponenten |
-| `umap_2d.npy`, `nachbarn_pca50.npy` | `notebook_umap.ipynb` | UMAP-Einbettung; die 15 nächsten Nachbarn jeder Probe in den ersten 50 Hauptkomponenten |
+| `umap_2d.npy`, `nachbarn_eingabe.npy` | `notebook_umap.ipynb` | UMAP-Einbettung; die 15 nächsten Nachbarn jeder Probe im Raum aller 9.089 Gene |
 
 ## Einrichtung
 
