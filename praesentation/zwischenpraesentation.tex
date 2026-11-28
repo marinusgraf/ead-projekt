@@ -705,6 +705,29 @@
   \end{entscheidung}
 \end{frame}
 
+% ------------------------------------------------------------------ Geschlechtsgene
+\begin{frame}{Welche Gene hängen am Geschlecht?}
+  \bild[0.85\textwidth]{geschlecht.pdf}
+  \vspace{0.1cm}
+  \begin{kasten}
+    Nur \textbf{4 Gene} hängen stark am Geschlecht: \gen{XIST} und \gen{TSIX} (nur bei Frauen aktiv) und zwei Gene des Y-Chromosoms.
+    Die übrigen Y-Gene sind schon mit den fehlenden Werten weggefallen. Danach eine klare Lücke.
+  \end{kasten}
+\end{frame}
+
+\begin{frame}{Geschlechtsgene}
+  \begin{entscheidung}
+    \gross{4 Geschlechtsgene entfernen}\quad{\color{grau}16.335 $\rightarrow$ 16.331 Gene}\\[2pt]
+    {\footnotesize aus den Daten bestimmt: $r^2 > 0{,}4$}
+  \end{entscheidung}
+  \vspace{0.3cm}
+  \begin{itemize}
+    \item Gefragt ist der Tumortyp, nicht das Geschlecht der Patienten.
+    \item $r^2$ wird \textbf{innerhalb} der Tumortypen gemessen: Prostata-Gene zählen nicht als Geschlechtsgene.
+    \item Danach erklärt das Geschlecht auf keiner der ersten 20 Hauptkomponenten mehr als 0,2\,\%.
+  \end{itemize}
+\end{frame}
+
 % ------------------------------------------------------------------ Log-Transformation
 \begin{frame}{Die Werte vor der Transformation}
   \bild[0.85\textwidth]{werte_roh_verteilung.pdf}
@@ -773,28 +796,6 @@
   \begin{entscheidung}
     \gross{7.242 Gene mit wenig Varianz entfernen}\quad{\color{grau}16.331 $\rightarrow$ 9.089 Gene}
   \end{entscheidung}
-\end{frame}
-
-% ------------------------------------------------------------------ Geschlechtsgene
-\begin{frame}{Welche Gene hängen am Geschlecht?}
-  \bild[0.85\textwidth]{geschlecht.pdf}
-  \vspace{0.1cm}
-  \begin{kasten}
-    Nur \textbf{4 Gene} hängen stark am Geschlecht: \gen{XIST} und \gen{TSIX} (nur bei Frauen aktiv) und zwei Gene des Y-Chromosoms.
-    Die übrigen Y-Gene sind schon mit den fehlenden Werten weggefallen. Danach eine klare Lücke.
-  \end{kasten}
-\end{frame}
-
-\begin{frame}{Geschlechtsgene}
-  \begin{entscheidung}
-    \gross{4 Geschlechtsgene entfernen}\quad{\color{grau}aus den Daten bestimmt: $r^2 > 0{,}4$}
-  \end{entscheidung}
-  \vspace{0.3cm}
-  \begin{itemize}
-    \item Gefragt ist der Tumortyp, nicht das Geschlecht der Patienten.
-    \item $r^2$ wird \textbf{innerhalb} der Tumortypen gemessen: Prostata-Gene zählen nicht als Geschlechtsgene.
-    \item Danach erklärt das Geschlecht auf keiner der ersten 20 Hauptkomponenten mehr als 0,2\,\%.
-  \end{itemize}
 \end{frame}
 
 % ------------------------------------------------------------------ Batch-Effekte
