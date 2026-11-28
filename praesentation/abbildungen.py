@@ -27,9 +27,11 @@ SEED = 0
 
 # ---------------------------------------------------------------- Schrift und Farben passend zu den Folien
 for f in ["FiraSans-Regular.otf", "FiraSans-SemiBold.otf"]:
-    p = Path("/usr/share/texmf-dist/fonts/opentype/public/fira") / f
-    if p.exists():
-        font_manager.fontManager.addfont(str(p))
+    for ordner in ["/usr/share/texmf-dist", "/usr/share/texlive/texmf-dist"]:     # Arch bzw. Debian/Ubuntu
+        p = Path(ordner) / "fonts/opentype/public/fira" / f
+        if p.exists():
+            font_manager.fontManager.addfont(str(p))
+            break
 TEXT, MUTED, GRID = "#17212b", "#5c6872", "#d9dee2"
 BLAU, ORANGE, AQUA, GELB, ROSA, GRAU_SERIE = "#2a78d6", "#eb6834", "#1baf7a", "#eda100", "#e87ba4", "#9aa3ab"
 HELLGRAU = "#dfe3e6"
