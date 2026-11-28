@@ -38,8 +38,9 @@
     \usebeamerfont{frametitle}\insertframetitle
   \end{beamercolorbox}}
 \setbeamercolor{frametitle}{bg=titelbalken,fg=white}
+\newcommand{\vortragende}{}
 \setbeamertemplate{footline}{%
-  \hfill\usebeamerfont{footline}\color{grau}\scriptsize\insertframenumber\hspace*{0.45cm}\vspace*{0.3cm}}
+  \usebeamerfont{footline}\color{grau}\scriptsize\hspace*{0.45cm}\vortragende\hfill\insertframenumber\hspace*{0.45cm}\vspace*{0.3cm}}
 \setbeamertemplate{itemize item}{\raisebox{0.15ex}{\color{titelbalken}\textbf{--}}}
 \setbeamertemplate{itemize subitem}{\color{grau}\textbf{--}}
 \setbeamertemplate{enumerate item}{\color{titelbalken}\textbf{\insertenumlabel.}}
@@ -93,7 +94,8 @@
   \end{minipage}\hfill
   \begin{minipage}[c]{0.3\textwidth}\centering\titelgrafik\end{minipage}}
 
-\newcommand{\abschnittsfolie}[1]{%
+\newcommand{\abschnittsfolie}[2][]{%
+  \gdef\vortragende{#1}%
   \begin{frame}[plain,noframenumbering]
     \begin{tikzpicture}[remember picture,overlay]
       \fill[dunkel] ($(current page.north east)+(-0.42\paperwidth,0)$) rectangle (current page.south east);
@@ -111,8 +113,9 @@
       \end{scope}
     \end{tikzpicture}
     \begin{minipage}{0.5\textwidth}
-      {\LARGE\bfseries\color{text}#1\par}
-      \vspace{0.5cm}{\color{linie}\rule{\linewidth}{0.5pt}}
+      {\LARGE\bfseries\color{text}#2\par}
+      \vspace{0.5cm}{\color{linie}\rule{\linewidth}{0.5pt}}\par
+      \vspace{0.3cm}{\color{grau}#1}
     \end{minipage}
   \end{frame}}
 
@@ -128,9 +131,9 @@
 \newcommand{\kennzahl}[2]{\begin{minipage}[t]{0.3\textwidth}\centering{\LARGE\bfseries\color{blau}#1}\par\vspace{2pt}{\scriptsize\color{grau}#2}\end{minipage}}
 
 % ------------------------------------------------------------------ Angaben
-\title{Wie ähneln sich Tumortypen\\in ihrer Genexpression?}
+\title{Welche Gruppen bilden Tumorproben\\anhand ihrer Genexpression?}
 \subtitle{Zwischenpräsentation: Datensatz, Aufbereitung, Hauptkomponentenanalyse und UMAP}
-\author{Marinus Graf}
+\author{Marinus Graf, Noah Hoßbach,\\Wilfred Tomani Tela, Verena Trollmann}
 \institute{Effiziente Algorithmen in Data Science und KI}
 \date{Wintersemester 2026/27}
 
@@ -141,7 +144,7 @@
 \end{frame}
 
 % ==================================================================
-\abschnittsfolie{1.\enspace Der Datensatz}
+\abschnittsfolie[Verena Trollmann]{1.\enspace Der Datensatz}
 
 \begin{frame}{Herkunft der Daten}
   \centering
@@ -156,22 +159,26 @@
     \node[institut] (nhgri) at (0,-0.95) {{\bfseries\footnotesize National Human Genome}\\{\bfseries\footnotesize Research Institute}\\[1pt]
       {\scriptsize\color{grau}Genomforschung (USA)}};
     \node[stufe] (tcga) at (5.6,0) {{\color{blau}\bfseries TCGA}\\[1pt]
-      {\scriptsize The Cancer Genome Atlas}\\[3pt]
-      {\scriptsize\color{grau}2006--2018}\\[2pt]
-      {\footnotesize 11.000 Tumoren aus}\\{\footnotesize 33 Krebsarten vermessen}};
+      {\scriptsize\color{grau}The Cancer Genome Atlas}\\
+      {\scriptsize gemeinsames }\\
+      {\scriptsize Forschungsprogramm}\\[3pt]
+
+      {\scriptsize 11.000 Tumoren aus}\\{\scriptsize 33 Krebsarten vermessen}};
     \node[stufe] (pan) at (10.1,0) {{\color{blau}\bfseries PanCanAtlas}\\[1pt]
-      {\scriptsize Pan-Cancer Atlas}\\[3pt]
-      {\scriptsize\color{grau}2018}\\[2pt]
-      {\footnotesize alle Krebsarten gemeinsam,}\\{\footnotesize einheitlich aufbereitet}};
+      {\scriptsize\color{grau}Pan-Cancer Atlas}\\
+      {\scriptsize Auswertungsinitiative}\\[3pt]
+
+      {\scriptsize alle Krebsarten gemeinsam,}\\{\scriptsize einheitlich aufbereitet}};
     \coordinate (zusammen) at (2.35,0);
     \draw[grau,line width=0.9pt] (nci.east) -| (zusammen);
     \draw[grau,line width=0.9pt] (nhgri.east) -| (zusammen);
     \draw[pfeil] (zusammen) -- (tcga.west);
-    \node[font=\scriptsize\bfseries,text=grau,above] at (3.0,0) {starten};
+    \node[font=\scriptsize\bfseries,text=grau,above] at (3.0,0) {initiieren};
     \draw[pfeil] (tcga) -- (pan);
   \end{tikzpicture}
 \end{frame}
 
+% ------------------------------------------------------------------
 \begin{frame}{Genutzte Daten aus dem PanCanAtlas}
   \centering
   \begin{tikzpicture}[>={Stealth[length=5pt]},
@@ -183,14 +190,14 @@
     \node[quelle] (pan) at (4.6,0) {{\color{blau}\bfseries PanCanAtlas}\\[1pt]
       {\scriptsize\color{grau}einheitlich aufbereitete Dateien aller 33 Krebsarten}};
     \node[datei] (f1) at (0,-3) {{\bfseries\footnotesize Genexpression}\\[2pt]
-      {\scriptsize Sequenzierung der RNA}\\[4pt]
-      {\footnotesize 20.531 Gene $\times$}\\{\footnotesize 11.069 Proben}};
+      {\scriptsize\color{grau} eine Zeile pro Probe}\\[4pt]
+      {\scriptsize Genexpressionswerte}\\{\footnotesize}};
     \node[datei] (f2) at (4.6,-3) {{\bfseries\footnotesize Klinische Tabelle}\\[2pt]
-      {\scriptsize eine Zeile pro Patient}\\[4pt]
-      {\footnotesize Tumortyp, Geschlecht,}\\{\footnotesize Alter, Histologie}};
+      {\scriptsize\color{grau} eine Zeile pro Patient}\\[4pt]
+      {\scriptsize Tumortyp, Geschlecht,}\\{\scriptsize Alter}};
     \node[datei] (f3) at (9.2,-3) {{\bfseries\footnotesize Qualitätsangaben}\\[2pt]
-      {\scriptsize eine Zeile pro Probe}\\[4pt]
-      {\footnotesize Sequenziergerät,}\\{\footnotesize Markierung „nicht verwenden“}};
+      {\scriptsize\color{grau} eine Zeile pro Probe}\\[4pt]
+      {\scriptsize RNA-Qualität,}\\{\scriptsize Tumorreinheit, Probentyp}};
     \draw[grau,line width=0.9pt] (pan.south) -- (4.6,-1.4);
     \draw[grau,line width=0.9pt] (0,-1.4) -- (9.2,-1.4);
     \foreach \f/\x in {f1/0,f2/4.6,f3/9.2} \draw[pfeil] (\x,-1.4) -- (\f.north);
@@ -198,7 +205,7 @@
 \end{frame}
 
 % ------------------------------------------------------------------
-\begin{frame}{Aufbau: eine große Matrix}
+\begin{frame}{Aufbau der Genexpressionsmatrix}
   \begin{columns}[c]
     \begin{column}{0.5\textwidth}
       \centering
@@ -213,10 +220,13 @@
           node[midway,above=4pt,font=\footnotesize,text=text] {20.531 Gene (Spalten)};
         \draw[decorate,decoration={brace,amplitude=4pt,mirror},grau] (-0.12,0) -- (-0.12,-2.6)
           node[midway,left=5pt,font=\footnotesize,text=text,align=right] {11.069\\Proben\\(Zeilen)};
-        \fill[petrolhell] (0,-3.0) rectangle (4.4,-3.6);
-        \draw[petrol!50] (0,-3.0) rectangle (4.4,-3.6);
-        \node[font=\scriptsize,text=petrol] at (2.2,-3.3) {Tumortyp, Geschlecht, Alter, \dots};
-        \draw[<->,grau] (2.2,-2.65) -- (2.2,-2.95) node[midway,right,font=\scriptsize,text=grau] {verknüpft über den Probennamen};
+        % Box links
+        \fill[petrolhell] (0.0,-3.5) rectangle (2.3,-4.5); \draw[petrol!50] (0.0,-3.5) rectangle (2.3,-4.5); \node[font=\scriptsize,text=petrol,align=center] at (1.2,-4.0) {Tumortyp\\Geschlecht\\Alter};
+        % Box rechts
+        \fill[petrolhell] (2.5,-3.5) rectangle (4.8,-4.5); \draw[petrol!50] (2.5,-3.5) rectangle (4.8,-4.5); \node[font=\scriptsize,text=petrol,align=center] at (3.65,-4.0) {Qualitätsangaben};
+        % längere Pfeile
+        \draw[->,grau,thick] (1.2,-3.5) -- (1.2,-2.6); \draw[->,grau,thick] (3.6,-3.5) -- (3.6,-2.6); % Barcode-Text
+        \node[font=\scriptsize,text=grau] at (2.4,-4.8) {verknüpft über den Barcode};
       \end{tikzpicture}
     \end{column}
     \begin{column}{0.46\textwidth}
@@ -224,7 +234,6 @@
         \item \textbf{Zeile:} eine Gewebeprobe
         \item \textbf{Spalte:} ein Gen
         \item \textbf{Eintrag $x_{ij}$:} wie aktiv Gen $j$ in Probe $i$ ist
-        \item Tumortyp und klinische Angaben stehen in den beiden anderen Dateien
       \end{itemize}
       \vspace{0.2cm}
       \begin{kasten}
@@ -272,8 +281,6 @@
       node[midway,left=6pt,font=\footnotesize\bfseries,text=text,align=right] {Proben\\(Zeilen)};
   \end{tikzpicture}
 
-  \vspace{0.15cm}
-  {\scriptsize\color{grau}beide: Lungenkrebs (Adenokarzinom der Lunge, LUAD)}
 \end{frame}
 
 % ------------------------------------------------------------------
@@ -306,22 +313,28 @@
 
   \vspace{0.45cm}
   \begin{columns}[t]
-    \begin{column}{0.31\textwidth}
+    \begin{column}{0.24\textwidth}
       \begin{kasten}
         \kastentitel{Patient}
-        \small Verknüpft die Matrix mit der klinischen Tabelle.
+        \footnotesize Verknüpft die Matrix mit der klinischen Tabelle.
       \end{kasten}
     \end{column}
-    \begin{column}{0.31\textwidth}
+    \begin{column}{0.24\textwidth}
       \begin{kasten}
         \kastentitel{Probentyp}
-        \small Unterscheidet Primärtumor, Metastase und Normalgewebe.
+        \footnotesize Unterscheidet Primärtumor, Metastase und Normalgewebe.
       \end{kasten}
     \end{column}
-    \begin{column}{0.31\textwidth}
+    \begin{column}{0.15\textwidth}
+      \begin{kasten}
+        \kastentitel{Molekül}
+        \footnotesize R = RNA
+      \end{kasten}
+    \end{column}
+    \begin{column}{0.24\textwidth}
       \begin{kasten}
         \kastentitel{Platte}
-        \small Gemeinsam verarbeitet: Quelle von Batch-Effekten.
+        \footnotesize Gemeinsame Verarbeitung mehrerer Teilstücke.
       \end{kasten}
     \end{column}
   \end{columns}
@@ -342,7 +355,7 @@
       \foreach \x/\y in {-0.55/0.35,-0.1/0.55,0.4/0.5,0.6/0.0,0.15/0.05,-0.35/-0.15,-0.6/-0.45,0.0/-0.5,0.45/-0.55,-0.75/0.0}
         {\draw[petrol!50,fill=white] (\x,\y) circle (0.19); \fill[petrol!70] (\x,\y) circle (0.06);}
       \node[schritt] at (0,1.25) {Gewebeprobe};
-      \node[erkl] at (0,-1.25) {ein Stück Tumor,\\tiefgefroren};
+      \node[erkl] at (0,-1.25) {ein Stück Tumor};
     \end{scope}
     \draw[pfeil] (1.2,0) -- (1.75,0);
     % 2 RNA
@@ -390,7 +403,7 @@
 
   \vspace{0.6cm}
   \begin{kasten}
-    \centering Je aktiver ein Gen, desto mehr Abschriften und Reads, desto \textbf{größer die Zahl}.
+    \centering Je aktiver ein Gen, desto mehr Reads, desto \textbf{größer die Zahl} in der Messung.
   \end{kasten}
 \end{frame}
 
@@ -471,15 +484,12 @@
     \node[titel] at (roh.north) {gezählte Reads};
     \node[titel,text=petrol] at (norm.north) {normalisierte Werte};
     \node[erkl] at ([yshift=-0.12cm]roh.south) {Probe 2 hat überall doppelte Werte,\\nur weil mehr gelesen wurde};
-    \node[erkl] at ([yshift=-0.12cm]norm.south) {beide Proben jetzt\\direkt vergleichbar};
+    \node[erkl] at ([yshift=-0.12cm]norm.south) {beide Proben jetzt direkt vergleichbar,\\ Verhältnisse innerhalb einer Probe bleiben erhalten};
     % zwei Kästen: gleiche Breite und Höhe, Kanten bündig mit den Tabellen
-    \node[anchor=north west,inner sep=0pt] at (0,-2.95) {\begin{kasten}[width=6.65cm,equal height group=norm,nobeforeafter]
+    \node[anchor=north west,inner sep=0pt] at (4,-2.95) {\begin{kasten}[width=6.65cm,equal height group=norm,nobeforeafter]
         \kastentitel{Oberes Quartil}
-        \small Der Wert, unter dem 75 Prozent der Gene liegen.
-      \end{kasten}};
-    \node[anchor=north east,inner sep=0pt] at (13.8,-2.95) {\begin{kasten}[width=6.65cm,equal height group=norm,nobeforeafter]
-        \kastentitel{Warum nicht die Summe?}
-        \small Wenige extrem aktive Gene würden sie bestimmen.
+        \footnotesize Standardwert in der RNA-Sequenzierung.\\[2pt]
+        \footnotesize Der Wert, unter dem 75 Prozent der Gene liegen.
       \end{kasten}};
   \end{tikzpicture}
 \end{frame}
@@ -515,23 +525,23 @@
       \node[font=\tiny,text=orange,anchor=north] at (\L*0.75,-0.15) {75\,\% = oberes Quartil};
       \fill[petrol] (\L*92.2/100,0) circle (0.11);
       \node[font=\scriptsize\bfseries,text=petrol,below=14pt] (nk) at (\L*92.2/100,0) {NKX2-1: 92\,\%};
-      \node[font=\scriptsize,text=grau,anchor=east,align=right] at (-0.2,0) {Anteil der Gene über 0\\[-2pt] mit kleinerem Wert};
+      \node[font=\scriptsize,text=grau,anchor=east,align=right] at (-0.2,0) {Anteil der Gene\\[-2pt] größer null};
     \end{scope}
     \draw[->,petrol,line width=0.9pt] (z4.south) .. controls +(0,-0.6) and +(0,0.7) .. (-0.75+9.6*0.922,-1.85);
   \end{tikzpicture}
 
-  \vspace{0.25cm}
+  \vspace{0.15cm}
   \begin{columns}[t]
     \begin{column}{0.48\textwidth}
       \begin{kasten}
         \kastentitel{Relativ zur Probe}
-        \small 2.779 $\div$ 1.000 $\approx$ 2,8: NKX2-1 ist 2,8-mal so aktiv wie ein Gen am oberen Quartil, aktiver als 92 Prozent der Gene mit einem Wert über 0.
+        \footnotesize 2.779 $\div$ 1.000 $\approx$ 2,8: NKX2-1 ist 2,8-mal so aktiv wie ein Gen am oberen Quartil, aktiver als 92\,\% der Gene über 0.
       \end{kasten}
     \end{column}
     \begin{column}{0.48\textwidth}
       \begin{kasten}
-        \kastentitel{Biologisch}
-        \small NKX2-1 steuert die Entwicklung der Lunge: ein hoher Wert passt zum Adenokarzinom der Lunge.
+        \kastentitel{Bedeutung}
+        \footnotesize Ein größerer Wert bedeutet ein aktiveres Gen, relativ zu den anderen Genen in der Probe.
       \end{kasten}
     \end{column}
   \end{columns}
@@ -540,11 +550,12 @@
 % ------------------------------------------------------------------ Forschungsfrage
 \begin{frame}{Forschungsfrage}
   \centering
-  {\large\bfseries\color{petrol}Wie ähneln sich verschiedene Tumortypen in ihrer Genexpression?\par}
+  \vfill
+  {\large\bfseries\color{petrol}Welche Gruppen bilden Tumorproben anhand ihrer Genexpression?\par}
   \vspace{0.1cm}
   {\small\color{grau}Welche liegen nah beieinander, welche sind klar abgegrenzt, und lässt sich das erklären?\par}
   \vspace{0.25cm}
-  \begin{tikzpicture}[>={Stealth[length=6pt]},scale=0.9,every node/.style={transform shape}]
+  \begin{tikzpicture}[>={Stealth[length=6pt]},scale=1.1,every node/.style={transform shape}]
     % links: Matrix
     \begin{scope}[x=0.2cm,y=0.2cm]
       \pgfmathsetseed{7}
@@ -582,32 +593,11 @@
       \node[anchor=north,font=\scriptsize,text=grau,align=center] at (2.1,-0.06) {jede Probe: ein Punkt in 2 Dimensionen\\Farbe: Tumortyp};
     \end{scope}
   \end{tikzpicture}
-
-  \vspace{-0.1cm}
-  \begin{columns}[t]
-    \begin{column}{0.32\textwidth}
-      \begin{kasten}[equal height group=frage]
-        \kastentitel{Problem}
-        \footnotesize 20.531 Dimensionen sind nicht anschaubar, Abstände werden durch Rauschen unscharf.
-      \end{kasten}
-    \end{column}
-    \begin{column}{0.32\textwidth}
-      \begin{kasten}[equal height group=frage]
-        \kastentitel{Idee}
-        \footnotesize Viele Gene ändern sich gemeinsam. Wenige Achsen fassen sie zusammen.
-      \end{kasten}
-    \end{column}
-    \begin{column}{0.32\textwidth}
-      \begin{kasten}[equal height group=frage]
-        \kastentitel{Methoden}
-        \footnotesize \textbf{Hauptkomponenten\-analyse}: deutbare Achsen.\\ \textbf{UMAP}: Nachbarschaften als Bild.
-      \end{kasten}
-    \end{column}
-  \end{columns}
+  \vfill
 \end{frame}
 
 % ==================================================================
-\abschnittsfolie{2.\enspace Die Aufbereitung}
+\abschnittsfolie[Noah Hoßbach]{2.\enspace Die Aufbereitung}
 
 % ------------------------------------------------------------------ Korrekturen der Autoren
 \begin{frame}{Was die Autoren schon korrigiert haben}
@@ -812,37 +802,6 @@
   \end{itemize}
 \end{frame}
 
-% ------------------------------------------------------------------ Batch-Effekte
-\begin{frame}{Was prägt die Hauptkomponenten?}
-  \bild{stoergroessen.pdf}
-  \vspace{0.1cm}
-  \begin{kasten}
-    Der \textbf{Tumortyp} erklärt den Großteil fast jeder Achse. Die Platte (Batch) erklärt etwas mehr als der Zufall,
-    am meisten auf den Hauptkomponenten 7, 8, 11 und 13.
-  \end{kasten}
-\end{frame}
-
-\begin{frame}{Platteneffekt innerhalb des Brustkrebses}
-  \bild[0.88\textwidth]{platte_brustkrebs.pdf}
-  \vspace{0.1cm}
-  \begin{kasten}
-    Eigene Hauptkomponentenanalyse nur für Brustkrebs: Achse 3 wird zu \textbf{57\,\%} durch die Platte erklärt (Zufall: 4\,\%).
-    Die Platten verschieben sich schrittweise, vermutlich mit dem Zeitpunkt der Verarbeitung.
-  \end{kasten}
-\end{frame}
-
-\begin{frame}{Batch-Effekte}
-  \begin{entscheidung}
-    \gross{Keine zusätzliche Korrektur, aber kontrollieren}
-  \end{entscheidung}
-  \vspace{0.3cm}
-  \begin{itemize}
-    \item Platten und Zentren sind mit dem Tumortyp vermengt: 55\,\% der Platten enthalten nur einen Tumortyp.
-          Eine Korrektur nach Platte würde echte Unterschiede mit entfernen.
-    \item Auffällige Gruppen später zuerst nach Platte einfärben.
-  \end{itemize}
-\end{frame}
-
 % ------------------------------------------------------------------ Ergebnis
 \begin{frame}{Ergebnis der Aufbereitung}
   \bild{protokoll.pdf}
@@ -854,7 +813,7 @@
 \end{frame}
 
 % ==================================================================
-\abschnittsfolie{3.\enspace Dimensions\-reduktion}
+\abschnittsfolie[Marinus Graf]{3.\enspace Dimensions\-reduktion}
 
 \begin{frame}{Wir wollen Ähnlichkeit sehen}
   \vfill
@@ -888,48 +847,21 @@
   \end{columns}
 \end{frame}
 
-\begin{frame}{Ein Beispiel: Signal und Rauschen im Abstand}
-  \small
-  Der quadrierte Abstand zweier Tumoren über alle 9.089 Gene setzt sich im Mittel aus zwei Teilen zusammen:\par
-  \bild{beispiel_rauschen.pdf}
-  \vspace{0.05cm}
-  \begin{columns}[t]
-    \begin{column}{0.48\textwidth}
-      \begin{kasten}[equal height group=bsp]
-        \kastentitel{Sockel: Variation innerhalb der Typen}
-        \footnotesize Zwei Lebertumoren unterscheiden sich auch. Für unsere Frage ist das \textbf{Rauschen}, und es steckt in jedem Abstand.
-      \end{kasten}
-    \end{column}
-    \begin{column}{0.48\textwidth}
-      \begin{kasten}[equal height group=bsp]
-        \kastentitel{Signal: Unterschied der Typen}
-        \footnotesize Zwei Lebertumoren liegen im Mittel so weit auseinander (208) wie ein Adeno- und ein Plattenepithelkarzinom der Lunge (206).
-      \end{kasten}
-    \end{column}
-  \end{columns}
+\begin{frame}{Weniger Dimensionen, schnellere Rechnung}
+  \vfill
+  {\centering\gross{Erwartung: Clustering wird schneller}\par}
+  \vspace{0.6cm}
+  \begin{itemize}
+    \item Clustering vergleicht immer wieder Abstände zwischen Tumoren. Jeder Abstand wird über \textbf{alle Dimensionen} berechnet.
+    \item Weniger Dimensionen: Jeder Abstand ist schneller berechnet, und die Daten brauchen weniger Speicher.
+    \item Clustering rechnet man oft: verschiedene Clusterzahlen, Verfahren und Stabilitätsprüfungen.
+  \end{itemize}
+  \vfill
 \end{frame}
 
-\begin{frame}{Viele Dimensionen verwischen die Abstände}
-  \begin{columns}[c]
-    \begin{column}{0.5\textwidth}
-      \bild{abstaende.pdf}
-    \end{column}
-    \begin{column}{0.48\textwidth}
-      \begin{itemize}
-        \item Abstände zwischen Tumoren, berechnet über \textbf{alle 9.089 Gene}.
-        \item Die Struktur ist da: Tumoren desselben Typs liegen näher (Median 0,74 gegenüber 1,01).
-        \item Aber 90\,\% aller Abstände liegen zwischen 0,8 und 1,3: Jedes Gen trägt etwas Rauschen bei, \textbf{nah und fern rücken zusammen}.
-      \end{itemize}
-      \vspace{0.1cm}
-      \begin{kasten}
-        \small \textbf{Ziel:} wenige Dimensionen, in denen ähnliche Tumoren Nachbarn bleiben und das Rauschen wegfällt.
-      \end{kasten}
-    \end{column}
-  \end{columns}
-\end{frame}
 
 % ==================================================================
-\abschnittsfolie{4.\enspace Hauptkomponenten\-analyse}
+\abschnittsfolie[Marinus Graf]{4.\enspace Hauptkomponenten\-analyse}
 
 \begin{frame}{Hauptkomponentenanalyse: die Herangehensweise}
   \centering
@@ -1020,7 +952,7 @@
 \end{frame}
 
 % ==================================================================
-\abschnittsfolie{5.\enspace UMAP}
+\abschnittsfolie[Wilfred Tomani Tela]{5.\enspace UMAP}
 
 \begin{frame}{Idee}
   \centering
