@@ -635,15 +635,6 @@
         \node[font=\scriptsize,anchor=north west,align=left,inner sep=0pt] at (\x+0.35,-0.45) {\text};
       }
     \end{scope}
-    % zwei Kästen: gleiche Breite und Höhe, Abstand 0,5 cm wie zwischen den Schritten
-    \node[anchor=north,inner sep=0pt] at (0.975,-4.3) {\begin{kasten}[width=6.25cm,equal height group=autoren]
-        \kastentitel{Nicht korrigiert}
-        \small Platten und Kliniken: Batch-Effekte können übrig sein.
-      \end{kasten}};
-    \node[anchor=north,inner sep=0pt] at (7.725,-4.3) {\begin{kasten}[width=6.25cm,equal height group=autoren]
-        \kastentitel{Nebenwirkungen}
-        \small Fehlende und leicht negative Werte in den korrigierten Proben.
-      \end{kasten}};
   \end{tikzpicture}
 \end{frame}
 
@@ -782,7 +773,7 @@
 
 % ------------------------------------------------------------------ Geschlechtsgene
 \begin{frame}{Welche Gene hängen am Geschlecht?}
-  \bild[0.85\textwidth]{geschlecht.pdf}
+  \bild[0.76\textwidth]{geschlecht.pdf}
   \vspace{0.1cm}
   \begin{kasten}
     Nur \textbf{4 Gene} hängen stark am Geschlecht: \gen{XIST} und \gen{TSIX} (nur bei Frauen aktiv) und zwei Gene des Y-Chromosoms.
@@ -807,8 +798,7 @@
   \bild{protokoll.pdf}
   \vspace{0.15cm}
   \begin{kasten}
-    \textbf{9.720 Primärtumoren $\times$ 9.089 Gene}, logarithmiert und zentriert. Geprüft und verworfen:
-    Ausgleich der Gruppengrößen und weitere Qualitätsfilter. Beides ändert die Nachbarschaften nicht.
+    \textbf{9.720 Primärtumoren $\times$ 9.089 Gene}, logarithmiert und zentriert.
   \end{kasten}
 \end{frame}
 
@@ -847,16 +837,34 @@
   \end{columns}
 \end{frame}
 
-\begin{frame}{Weniger Dimensionen, schnellere Rechnung}
-  \vfill
-  {\centering\gross{Erwartung: Clustering wird schneller}\par}
-  \vspace{0.6cm}
-  \begin{itemize}
-    \item Clustering vergleicht immer wieder Abstände zwischen Tumoren. Jeder Abstand wird über \textbf{alle Dimensionen} berechnet.
-    \item Weniger Dimensionen: Jeder Abstand ist schneller berechnet, und die Daten brauchen weniger Speicher.
-    \item Clustering rechnet man oft: verschiedene Clusterzahlen, Verfahren und Stabilitätsprüfungen.
-  \end{itemize}
-  \vfill
+\begin{frame}{Clustering auf allen Genen ist teuer}
+  \begin{columns}[c]
+    \begin{column}{0.5\textwidth}
+      \centering
+      \begin{tikzpicture}
+        \pgfmathsetseed{4}
+        \coordinate (p) at (0,0);
+        \foreach \i in {1,...,34} {
+          \pgfmathsetmacro{\winkel}{\i*360/34+6*rand}
+          \pgfmathsetmacro{\radius}{1.0+1.4*rnd}
+          \coordinate (q) at (\winkel:\radius);
+          \draw[blaurand!70,line width=0.4pt] (p) -- (q);
+          \fill[blau!70] (q) circle (1.6pt);
+        }
+        \fill[orange] (p) circle (3.2pt);
+        \node[font=\scriptsize\bfseries,text=orange,fill=white,inner sep=1.5pt,rounded corners=1pt] at (0,-0.32) {eine Probe};
+        \node[font=\scriptsize,text=grau,align=center] at (0,-2.85) {jede Linie: ein Abstand über alle Gene};
+      \end{tikzpicture}
+    \end{column}
+    \begin{column}{0.48\textwidth}
+      \begin{itemize}
+        \item Clustering vergleicht Tumoren \textbf{paarweise}: 9.720 Tumoren ergeben 47 Millionen Paare.
+        \item Jeder Abstand läuft über \textbf{alle Dimensionen}: mit allen Genen 9.089 Rechenschritte pro Paar.
+        \item Clustering rechnet man oft: verschiedene Clusterzahlen, Verfahren und Stabilitätsprüfungen.
+        \item Weniger Dimensionen: Der Aufwand sinkt im \textbf{selben Verhältnis}.
+      \end{itemize}
+    \end{column}
+  \end{columns}
 \end{frame}
 
 
@@ -865,38 +873,31 @@
 
 \begin{frame}{Hauptkomponentenanalyse: die Herangehensweise}
   \centering
-  {\large\bfseries\color{petrol} Die Tumoren auf wenige Achsen projizieren,\\ sodass möglichst viel Varianz erhalten bleibt.\par}
-  \vspace{0.6cm}
-  \raggedright
-  \begin{columns}[t]
-    \begin{column}{0.24\textwidth}
-      \begin{kasten}[equal height group=vorgehen]
-        \kastentitel{1. Zentrieren}
-        \footnotesize Von jedem Gen den Mittelwert abziehen.
-      \end{kasten}
+  \vfill
+  {\large\bfseries\color{petrol}Neue Achsen als Linearkombination der Gen-Achsen\par}
+  \vspace{0.7cm}
+  \begin{columns}[c]
+    \begin{column}{0.44\textwidth}
+      \centering
+      {\large $\mathbf{v}_j = \displaystyle\sum_{g=1}^{9089} v_{gj}\,\hat{\mathbf{e}}_g = \bigl(v_{1j}, \dots, v_{9089,j}\bigr)^{\top}$\par}
+      \vspace{0.4cm}
+      {\footnotesize\color{grau}
+      \begin{tabular}{@{}r@{\;}l@{}}
+        $\mathbf{v}_j$: & neue Achse $j$\\
+        $\hat{\mathbf{e}}_g$: & Achse von Gen $g$\\
+        $v_{gj}$: & Gewicht von Gen $g$ in Achse $j$ (Loading)
+      \end{tabular}\par}
     \end{column}
-    \begin{column}{0.24\textwidth}
-      \begin{kasten}[equal height group=vorgehen]
-        \kastentitel{2. Achse 1}
-        \footnotesize Die Richtung, auf der die Tumoren am stärksten streuen.
-      \end{kasten}
-    \end{column}
-    \begin{column}{0.24\textwidth}
-      \begin{kasten}[equal height group=vorgehen]
-        \kastentitel{3. Achse 2, 3, …}
-        \footnotesize Senkrecht zu den vorigen, wieder mit der größten Varianz.
-      \end{kasten}
-    \end{column}
-    \begin{column}{0.24\textwidth}
-      \begin{kasten}[equal height group=vorgehen]
-        \kastentitel{4. Projizieren}
-        \footnotesize Jeder Tumor bekommt auf jeder Achse eine Koordinate, seinen Score.
-      \end{kasten}
+    \begin{column}{0.54\textwidth}
+      \begin{itemize}
+        \item Jede neue Achse mischt \textbf{alle Gene}, jedes mit einem Gewicht (Loading).
+        \item Achse 1: die Loadings, bei denen die Tumoren \textbf{am stärksten streuen}.
+        \item Achse 2, 3, \dots: \textbf{senkrecht} zu den vorigen, wieder mit der größten Varianz.
+        \item Nur die \textbf{ersten $k$ Achsen} behalten: Jeder Tumor bekommt $k$ Koordinaten statt 9.089.
+      \end{itemize}
     \end{column}
   \end{columns}
-  \vspace{0.5cm}
-  \centering
-  \small Ergebnis: statt 9.089 Genen wenige Achsen. Jede Achse ist eine gewichtete Kombination aller Gene.
+  \vfill
 \end{frame}
 
 
@@ -915,7 +916,7 @@
 
 \begin{frame}{Was bedeuten die Achsen?}
   \bild[0.92\textwidth]{pca_ladungen.pdf}
-  \quelle{Die 5 Gene mit den größten positiven und negativen Ladungen. Das Vorzeichen einer Achse ist willkürlich.}
+  \quelle{Die 5 Gene mit den größten positiven und negativen Loadings.}
   \vspace{0.05cm}
   \begin{kasten}
     \small Die Achsen sind \textbf{Genexpressionsprogramme}: Nervengewebe (\gen{GFAP}, \gen{PLP1}), Leber (\gen{ALDOB}, \gen{PKLR}),
